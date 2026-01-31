@@ -41,10 +41,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/app/opportunities/page.js"
     ],
-    "/not-found": [
+    "/app/contacts/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/not-found.js"
+      "static/chunks/app/app/contacts/page.js"
     ]
   }
 }
