@@ -425,15 +425,15 @@ export default function HomePage() {
                       <Badge
                         className={
                           item.stage === 'CLOSED_WON'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-green-500/20 text-green-300'
                             : item.stage === 'CLOSED_LOST'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-blue-100 text-blue-800'
+                              ? 'bg-red-500/20 text-red-300'
+                              : 'bg-blue-500/20 text-blue-300'
                         }
                       >
-                        {item.stage}
+                        {t(`stage.${item.stage.toLowerCase()}`)}
                       </Badge>
-                      <span className="text-sm text-gray-600">({item.count})</span>
+                      <span className="text-sm text-muted-foreground">({item.count})</span>
                     </div>
                     <div className="text-lg font-semibold">
                       {formatCurrency(item.total_amount)}
