@@ -1,4 +1,11 @@
 {
-  "/page": "app/page.js",
-  "/login/page": "app/login/page.js"
+  "/app/accounts/page": "app/app/accounts/page.js",
+  "/app/leads/page": "app/app/leads/page.js",
+  "/app/contacts/page": "app/app/contacts/page.js",
+  "/app/opportunities/page": "app/app/opportunities/page.js",
+  "/app/activities/page": "app/app/activities/page.js",
+  "/app/services/page": "app/app/services/page.js",
+  "/app/contacts/[id]/page": "app/app/contacts/[id]/page.js",
+  "/app/accounts/[id]/page": "app/app/accounts/[id]/page.js",
+  "/app/leads/[id]/page": "app/app/leads/[id]/page.js"
 }
