@@ -194,6 +194,9 @@ export const translations = {
         'opportunities.no_opportunities': 'Nema prilika',
         'opportunities.no_close_date': 'Nema datuma zatvaranja',
         'opportunities.total_value': 'Ukupna Vrijednost',
+        'opportunities.open_deals': 'Otvorene Prilike',
+        'opportunities.won_deals': 'Dobijene Prilike',
+        'opportunities.lost_deals': 'Izgubljene Prilike',
 
         // Activities Page
         'activities.title': 'Aktivnosti',
