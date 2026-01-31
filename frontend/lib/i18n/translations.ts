@@ -345,6 +345,7 @@ export const translations = {
         'priority.high': 'Visok',
 
         // Stages
+        'stage.open': 'Otvoreno',
         'stage.prospecting': 'Istraživanje',
         'stage.qualified': 'Kvalifikacija',
         'stage.proposal': 'Prijedlog',
