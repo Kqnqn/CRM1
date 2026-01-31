@@ -319,7 +319,7 @@ export default function LeadDetailPage() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <p className="text-gray-900">{lead.status}</p>
+                        <p className="text-foreground">{t(`status.${lead.status.toLowerCase()}`)}</p>
                       )}
                     </div>
                   </div>
