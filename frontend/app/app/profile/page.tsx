@@ -344,7 +344,7 @@ export default function ProfilePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
-            <div className="flex items-center justify-between p-5 border-2 border-border rounded-xl bg-white hover:border-gray-300 transition-colors">
+            <div className="flex items-center justify-between p-5 border-2 border-border rounded-xl bg-card hover:border-muted-foreground transition-colors">
               <div className="flex items-center gap-4">
                 {profile.google_calendar_connected ? (
                   <>

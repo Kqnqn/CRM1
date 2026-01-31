@@ -2351,6 +2351,10 @@ video {
   border-color: hsl(var(--border));
 }
 
+.hover\:border-muted-foreground:hover {
+  border-color: hsl(var(--muted-foreground));
+}
+
 .hover\:bg-accent:hover {
   background-color: hsl(var(--accent));
 }
