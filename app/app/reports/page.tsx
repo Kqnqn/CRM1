@@ -50,7 +50,8 @@ export default function ReportsPage() {
     };
 
     fetchUsers();
-  }, [profile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -135,7 +136,8 @@ export default function ReportsPage() {
     };
 
     fetchStats();
-  }, [profile, user, filters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id, user?.id, filters.startDate, filters.endDate, filters.ownerId]);
 
   const exportToCSV = () => {
     const rows: string[] = [];

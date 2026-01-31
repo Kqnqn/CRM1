@@ -75,8 +75,11 @@ export default function AccountsPage() {
   };
 
   useEffect(() => {
-    fetchAccounts();
-  }, [stageFilter, profile]);
+    if (profile) {
+      fetchAccounts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stageFilter, profile?.id, user?.id]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

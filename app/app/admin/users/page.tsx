@@ -67,8 +67,11 @@ export default function UsersManagementPage() {
       return;
     }
 
-    fetchUsers();
-  }, [profile]);
+    if (profile) {
+      fetchUsers();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id, profile?.role]);
 
   const fetchUsers = async () => {
     setLoading(true);

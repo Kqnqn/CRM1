@@ -72,8 +72,11 @@ export default function ContactsPage() {
   };
 
   useEffect(() => {
-    fetchContacts();
-  }, [profile]);
+    if (profile) {
+      fetchContacts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id, user?.id]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

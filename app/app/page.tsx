@@ -291,7 +291,8 @@ export default function HomePage() {
     };
 
     fetchData();
-  }, [user, profile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, profile?.id]);
 
   const handleMarkComplete = async (taskId: string) => {
     await supabase

@@ -35,7 +35,7 @@ export default function ProfilePage() {
         phone: profile.phone || '',
       });
     }
-  }, [profile, user]);
+  }, [profile?.id, profile?.full_name, profile?.phone, user?.email]);
 
   const handleUpdateProfile = async () => {
     if (!profile) return;

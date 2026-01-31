@@ -67,8 +67,11 @@ export default function OpportunitiesPage() {
   };
 
   useEffect(() => {
-    fetchOpportunities();
-  }, [profile]);
+    if (profile) {
+      fetchOpportunities();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id, user?.id]);
 
   const handleDragStart = (e: React.DragEvent, oppId: string) => {
     e.dataTransfer.setData('oppId', oppId);

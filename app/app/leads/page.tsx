@@ -96,8 +96,11 @@ export default function LeadsPage() {
   };
 
   useEffect(() => {
-    fetchLeads();
-  }, [statusFilter, profile]);
+    if (profile) {
+      fetchLeads();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, profile?.id, user?.id]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
