@@ -2315,6 +2315,10 @@ video {
   border-color: rgb(209 213 219 / var(--tw-border-opacity));
 }
 
+.hover\:border-border:hover {
+  border-color: hsl(var(--border));
+}
+
 .hover\:bg-accent:hover {
   background-color: hsl(var(--accent));
 }
