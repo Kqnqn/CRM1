@@ -124,6 +124,7 @@ export const translations = {
         'common.download': 'Preuzmi',
         'common.preview_not_available': 'Pregled nije dostupan za ovaj tip fajla',
         'common.download_to_view': 'Preuzmite da biste vidjeli',
+        'common.pick_date': 'Izaberi datum',
 
         // Leads Page
         'leads.title': 'Lidovi',
@@ -191,6 +192,9 @@ export const translations = {
         'opportunities.view_kanban': 'Kanban Prikaz',
         'opportunities.view_list': 'Lista Prikaz',
         'opportunities.search_placeholder': 'Pretraži prilike...',
+        'opportunities.open_deals': 'Otvorene Prilike',
+        'opportunities.won_deals': 'Dobijene Prilike',
+        'opportunities.lost_deals': 'Izgubljene Prilike',
         'opportunities.table.name': 'Naziv',
         'opportunities.table.account': 'Klijent',
         'opportunities.table.amount': 'Iznos',
@@ -201,6 +205,8 @@ export const translations = {
         'opportunities.no_opportunities': 'Nema prilika',
         'opportunities.no_close_date': 'Nema datuma zatvaranja',
         'opportunities.total_value': 'Ukupna Vrijednost',
+        'opportunities.related_orders': 'Povezane Narudžbe',
+        'opportunities.total_orders_amount': 'Ukupni Iznos Narudžbi',
 
         // Activities Page
         'activities.title': 'Aktivnosti',
@@ -323,6 +329,8 @@ export const translations = {
         'orders.fail_created': 'Greška pri kreiranju narudžbe',
         'orders.fail_updated': 'Greška pri ažuriranju narudžbe',
         'orders.overdue_tag': '(Kasni)',
+        'orders.attached_files': 'Priloženi fajlovi',
+        'orders.no_files': 'Nema priloženih fajlova',
 
         // Statuses
         'status.new': 'Novo',
@@ -358,16 +366,41 @@ export const translations = {
         'stage.closed_won': 'Zatvoreno - Dobijeno',
         'stage.closed_lost': 'Zatvoreno - Izgubljeno',
 
+        // Industries
+        'industry.horeca': 'HORECA (Ugostiteljstvo)',
+        'industry.retail': 'Maloprodaja',
+        'industry.wholesale': 'Veleprodaja',
+        'industry.manufacturing': 'Proizvodnja',
+        'industry.other': 'Ostalo',
+
         // Contacts Page
         'contacts.title': 'Kontakti',
         'contacts.new_contact': 'Novi Kontakt',
         'contacts.search_placeholder': 'Pretraži kontakte...',
+        'contacts.all_types': 'Svi Tipovi',
+        'contacts.all_industries': 'Sve Industrije',
         'contacts.table.name': 'Ime',
         'contacts.table.title': 'Titula',
         'contacts.table.account': 'Klijent',
         'contacts.table.email': 'Email',
         'contacts.table.phone': 'Telefon',
         'contacts.no_contacts': 'Nema kontakata',
+        'contacts.first_name': 'Ime',
+        'contacts.last_name': 'Prezime',
+        'contacts.first_name_placeholder': 'Ime',
+        'contacts.last_name_placeholder': 'Prezime',
+        'contacts.title_placeholder': 'npr., Menadžer prodaje',
+        'contacts.department_placeholder': 'npr., Prodaja, Marketing',
+        'contacts.edit_contact': 'Uredi Kontakt',
+        'contacts.account': 'Kompanija',
+        'contacts.mobile': 'Mobilni telefon',
+        'contacts.department': 'Odjel',
+        'contacts.contact_type': 'Tip kontakta',
+        'contacts.select_type': 'Izaberi tip',
+        'contacts.select_industry': 'Izaberi industriju',
+        'contacts.legal_entity': 'Pravno lice',
+        'contacts.individual': 'Fizičko lice',
+        'contacts.success_updated': 'Kontakt uspješno ažuriran',
 
         // Reports Page
         'reports.title': 'Izvještaji',
@@ -393,6 +426,10 @@ export const translations = {
         'documents.table.actions': 'Akcije',
         'documents.form.title_optional': 'Naslov (opcionalno)',
         'documents.form.files': 'Fajlovi',
+        'documents.form.choose_files': 'Izaberi fajl',
+        'documents.form.no_file_chosen': 'Nije izabran fajl',
+        'documents.form.files_selected': 'fajl izabran',
+        'documents.form.files_selected_plural': 'fajlova izabrano',
         'documents.form.placeholder': 'Naslov dokumenta...',
         'documents.form.supported': 'Podržano: PDF, DOC, DOCX, JPG, PNG, TXT, XLS, XLSX',
         'documents.success_uploaded': 'Učitavanje uspješno',
@@ -591,6 +628,7 @@ export const translations = {
         'common.download': 'Download',
         'common.preview_not_available': 'Preview not available for this file type',
         'common.download_to_view': 'Download to view',
+        'common.pick_date': 'Pick a date',
 
         // Leads Page
         'leads.title': 'Leads',
@@ -658,6 +696,9 @@ export const translations = {
         'opportunities.view_kanban': 'Kanban View',
         'opportunities.view_list': 'List View',
         'opportunities.search_placeholder': 'Search opportunities...',
+        'opportunities.open_deals': 'Open Deals',
+        'opportunities.won_deals': 'Won Deals',
+        'opportunities.lost_deals': 'Lost Deals',
         'opportunities.table.name': 'Name',
         'opportunities.table.account': 'Account',
         'opportunities.table.amount': 'Amount',
@@ -668,6 +709,8 @@ export const translations = {
         'opportunities.no_opportunities': 'No opportunities',
         'opportunities.no_close_date': 'No close date',
         'opportunities.total_value': 'Total Value',
+        'opportunities.related_orders': 'Related Orders',
+        'opportunities.total_orders_amount': 'Total Orders Amount',
 
         // Activities Page
         'activities.title': 'Activities',
@@ -767,6 +810,8 @@ export const translations = {
         'orders.fail_created': 'Failed to create order',
         'orders.fail_updated': 'Failed to update order',
         'orders.overdue_tag': '(Overdue)',
+        'orders.attached_files': 'Attached Files',
+        'orders.no_files': 'No files attached',
 
         // Statuses
         'status.new': 'New',
@@ -802,16 +847,41 @@ export const translations = {
         'stage.closed_won': 'Closed Won',
         'stage.closed_lost': 'Closed Lost',
 
+        // Industries
+        'industry.horeca': 'HORECA',
+        'industry.retail': 'Retail',
+        'industry.wholesale': 'Wholesale',
+        'industry.manufacturing': 'Manufacturing',
+        'industry.other': 'Other',
+
         // Contacts Page
         'contacts.title': 'Contacts',
         'contacts.new_contact': 'New Contact',
         'contacts.search_placeholder': 'Search contacts...',
+        'contacts.all_types': 'All Types',
+        'contacts.all_industries': 'All Industries',
         'contacts.table.name': 'Name',
         'contacts.table.title': 'Title',
         'contacts.table.account': 'Account',
         'contacts.table.email': 'Email',
         'contacts.table.phone': 'Phone',
         'contacts.no_contacts': 'No contacts',
+        'contacts.first_name': 'First Name',
+        'contacts.last_name': 'Last Name',
+        'contacts.first_name_placeholder': 'First name',
+        'contacts.last_name_placeholder': 'Last name',
+        'contacts.title_placeholder': 'e.g., Sales Manager',
+        'contacts.department_placeholder': 'e.g., Sales, Marketing',
+        'contacts.edit_contact': 'Edit Contact',
+        'contacts.account': 'Account',
+        'contacts.mobile': 'Mobile',
+        'contacts.department': 'Department',
+        'contacts.contact_type': 'Contact Type',
+        'contacts.select_type': 'Select type',
+        'contacts.select_industry': 'Select industry',
+        'contacts.legal_entity': 'Legal Entity',
+        'contacts.individual': 'Individual',
+        'contacts.success_updated': 'Contact updated successfully',
 
         // Reports Page
         'reports.title': 'Reports',
@@ -837,6 +907,10 @@ export const translations = {
         'documents.table.actions': 'Actions',
         'documents.form.title_optional': 'Title (optional)',
         'documents.form.files': 'Files',
+        'documents.form.choose_files': 'Choose File',
+        'documents.form.no_file_chosen': 'No file chosen',
+        'documents.form.files_selected': 'file selected',
+        'documents.form.files_selected_plural': 'files selected',
         'documents.form.placeholder': 'Document title...',
         'documents.form.supported': 'Supported: PDF, DOC, DOCX, JPG, PNG, TXT, XLS, XLSX',
         'documents.success_uploaded': 'Upload successful',

@@ -352,12 +352,23 @@ export function DocumentsTab({ entityType, entityId }: DocumentsTabProps) {
 
               <div className="space-y-2">
                 <Label>{t('documents.form.files')}</Label>
-                <Input
-                  type="file"
-                  multiple
-                  onChange={(e) => setSelectedFiles(e.target.files)}
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt,.xls,.xlsx"
-                />
+                <label className="relative flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background items-center gap-2 cursor-pointer hover:bg-accent/50 transition-colors">
+                  <input
+                    type="file"
+                    multiple
+                    onChange={(e) => setSelectedFiles(e.target.files)}
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt,.xls,.xlsx"
+                    className="sr-only"
+                  />
+                  <span className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-7 px-3 shrink-0">
+                    {t('documents.form.choose_files')}
+                  </span>
+                  <span className="text-muted-foreground text-sm truncate">
+                    {selectedFiles && selectedFiles.length > 0
+                      ? `${selectedFiles.length} ${selectedFiles.length === 1 ? t('documents.form.files_selected') : t('documents.form.files_selected_plural')}`
+                      : t('documents.form.no_file_chosen')}
+                  </span>
+                </label>
                 <p className="text-xs text-gray-500">
                   {t('documents.form.supported')}
                 </p>

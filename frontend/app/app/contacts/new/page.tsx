@@ -129,26 +129,26 @@ export default function NewContactPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="first_name">
-                  {t('contacts.table.name')} <span className="text-red-500">*</span>
+                  {t('contacts.first_name')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="first_name"
                   value={formData.first_name}
                   onChange={(e) => updateFormData('first_name', e.target.value)}
-                  placeholder="First name"
+                  placeholder={t('contacts.first_name_placeholder')}
                   required
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="last_name">
-                  {t('contacts.table.name')} <span className="text-red-500">*</span>
+                  {t('contacts.last_name')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="last_name"
                   value={formData.last_name}
                   onChange={(e) => updateFormData('last_name', e.target.value)}
-                  placeholder="Last name"
+                  placeholder={t('contacts.last_name_placeholder')}
                   required
                 />
               </div>
@@ -189,7 +189,7 @@ export default function NewContactPage() {
                   id="title"
                   value={formData.title}
                   onChange={(e) => updateFormData('title', e.target.value)}
-                  placeholder="e.g., Sales Manager"
+                  placeholder={t('contacts.title_placeholder')}
                 />
               </div>
 
@@ -199,7 +199,7 @@ export default function NewContactPage() {
                   id="department"
                   value={formData.department}
                   onChange={(e) => updateFormData('department', e.target.value)}
-                  placeholder="e.g., Sales, Marketing"
+                  placeholder={t('contacts.department_placeholder')}
                 />
               </div>
             </div>

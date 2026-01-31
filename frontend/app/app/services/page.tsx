@@ -115,6 +115,16 @@ export default function ServicesPage() {
       formData.interval_unit
     );
 
+    // Validate required fields
+    if (!formData.account_id) {
+      toast({
+        title: 'Greška',
+        description: 'Molimo izaberite kompaniju',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const serviceData: any = {
       account_id: formData.account_id,
       device_type: formData.device_type,
@@ -129,10 +139,14 @@ export default function ServicesPage() {
       next_service_due_at: nextServiceDueAt.toISOString(),
       service_price: formData.service_price ? parseFloat(formData.service_price) : null,
       currency: formData.currency,
-      assigned_to_id: formData.assigned_to_id || null,
       status: formData.status,
       notes: formData.notes || null,
     };
+
+    // Only add assigned_to_id if it has a value
+    if (formData.assigned_to_id) {
+      serviceData.assigned_to_id = formData.assigned_to_id;
+    }
 
     if (editingService) {
       const { error } = await supabase
@@ -147,9 +161,17 @@ export default function ServicesPage() {
         });
       }
     } else {
+      console.log('Service data being sent:', serviceData);
       const { error } = await supabase.from('service_contracts').insert(serviceData);
 
-      if (!error) {
+      if (error) {
+        console.error('Error creating service:', error);
+        toast({
+          title: 'Error',
+          description: error.message,
+          variant: 'destructive',
+        });
+      } else {
         toast({
           title: t('services.success_created'),
           description: t('services.success_created'),

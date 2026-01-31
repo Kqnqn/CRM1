@@ -253,12 +253,23 @@ export default function FilesPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>{t('common.file')}</Label>
-                <Input
-                  ref={fileInputRef}
-                  type="file"
-                  onChange={handleFileSelect}
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp"
-                />
+                <label className="relative flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background items-center gap-2 cursor-pointer hover:bg-accent/50 transition-colors">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={handleFileSelect}
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp"
+                    className="sr-only"
+                  />
+                  <span className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-7 px-3 shrink-0">
+                    {t('documents.form.choose_files')}
+                  </span>
+                  <span className="text-muted-foreground text-sm truncate">
+                    {selectedFile
+                      ? selectedFile.name
+                      : t('documents.form.no_file_chosen')}
+                  </span>
+                </label>
                 {selectedFile && (
                   <p className="text-sm text-muted-foreground">
                     {t('common.selected')}: {selectedFile.name} ({formatFileSize(selectedFile.size)})
