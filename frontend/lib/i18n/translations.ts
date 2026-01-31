@@ -655,6 +655,9 @@ export const translations = {
         'opportunities.no_opportunities': 'No opportunities',
         'opportunities.no_close_date': 'No close date',
         'opportunities.total_value': 'Total Value',
+        'opportunities.open_deals': 'Open Deals',
+        'opportunities.won_deals': 'Won Deals',
+        'opportunities.lost_deals': 'Lost Deals',
 
         // Activities Page
         'activities.title': 'Activities',
