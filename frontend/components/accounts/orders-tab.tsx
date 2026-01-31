@@ -497,7 +497,7 @@ export function OrdersTab({ accountId }: OrdersTabProps) {
                               {order.documents && order.documents.length > 0 ? (
                                 <div className="space-y-2">
                                   {order.documents.map((doc) => (
-                                    <div key={doc.id} className="flex items-center justify-between bg-white p-2 rounded border">
+                                    <div key={doc.id} className="flex items-center justify-between bg-card p-2 rounded border border-border">
                                       <div className="flex items-center gap-2">
                                         <FileIcon className="h-4 w-4 text-blue-500" />
                                         <span className="text-sm">{doc.document?.file_name}</span>

@@ -170,11 +170,11 @@ export function NotificationsBell() {
                 {overdueTasks.map((task) => (
                   <div
                     key={task.id}
-                    className="p-2 bg-white border border-red-200 rounded cursor-pointer hover:bg-red-50"
+                    className="p-2 bg-red-950/50 border border-red-800 rounded cursor-pointer hover:bg-red-900/50"
                     onClick={() => handleTaskClick(task)}
                   >
-                    <p className="text-sm font-medium text-red-900">{task.subject}</p>
-                    <p className="text-xs text-red-600 mt-1">
+                    <p className="text-sm font-medium text-red-200">{task.subject}</p>
+                    <p className="text-xs text-red-400 mt-1">
                       {task.type} • Overdue since {new Date(task.due_date).toLocaleDateString()}
                     </p>
                   </div>
@@ -184,20 +184,20 @@ export function NotificationsBell() {
           )}
 
           {servicesOverdue.length > 0 && (
-            <div className="p-4 border-b bg-red-50">
+            <div className="p-4 border-b border-border bg-red-950/30">
               <div className="flex items-center gap-2 mb-3">
-                <Wrench className="h-4 w-4 text-red-600" />
-                <h4 className="font-medium text-red-900">Overdue Services</h4>
+                <Wrench className="h-4 w-4 text-red-400" />
+                <h4 className="font-medium text-red-200">Overdue Services</h4>
               </div>
               <div className="space-y-2">
                 {servicesOverdue.map((service) => (
                   <div
                     key={service.id}
-                    className="p-2 bg-white border border-red-200 rounded cursor-pointer hover:bg-red-50"
+                    className="p-2 bg-red-950/50 border border-red-800 rounded cursor-pointer hover:bg-red-900/50"
                     onClick={() => handleServiceClick(service)}
                   >
-                    <p className="text-sm font-medium text-red-900">{service.device_type}</p>
-                    <p className="text-xs text-red-600 mt-1">
+                    <p className="text-sm font-medium text-red-200">{service.device_type}</p>
+                    <p className="text-xs text-red-400 mt-1">
                       {service.account_name} • Due {new Date(service.next_service_due_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -207,20 +207,20 @@ export function NotificationsBell() {
           )}
 
           {servicesDueSoon.length > 0 && (
-            <div className="p-4 border-b bg-orange-50">
+            <div className="p-4 border-b border-border bg-orange-950/30">
               <div className="flex items-center gap-2 mb-3">
-                <Wrench className="h-4 w-4 text-orange-600" />
-                <h4 className="font-medium text-orange-900">Services Due Soon</h4>
+                <Wrench className="h-4 w-4 text-orange-400" />
+                <h4 className="font-medium text-orange-200">Services Due Soon</h4>
               </div>
               <div className="space-y-2">
                 {servicesDueSoon.map((service) => (
                   <div
                     key={service.id}
-                    className="p-2 bg-white border border-orange-200 rounded cursor-pointer hover:bg-orange-50"
+                    className="p-2 bg-orange-950/50 border border-orange-800 rounded cursor-pointer hover:bg-orange-900/50"
                     onClick={() => handleServiceClick(service)}
                   >
-                    <p className="text-sm font-medium text-orange-900">{service.device_type}</p>
-                    <p className="text-xs text-orange-600 mt-1">
+                    <p className="text-sm font-medium text-orange-200">{service.device_type}</p>
+                    <p className="text-xs text-orange-400 mt-1">
                       {service.account_name} • Due {new Date(service.next_service_due_at).toLocaleDateString()}
                     </p>
                   </div>

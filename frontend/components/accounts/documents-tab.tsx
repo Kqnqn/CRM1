@@ -401,7 +401,7 @@ export function DocumentsTab({ entityType, entityId }: DocumentsTabProps) {
             ) : previewDoc?.mime_type?.startsWith('text/') ? (
               <iframe
                 src={previewUrl}
-                className="w-full h-[70vh] border-0 rounded-lg bg-white"
+                className="w-full h-[70vh] border-0 rounded-lg bg-card"
                 title={previewDoc.title}
               />
             ) : (

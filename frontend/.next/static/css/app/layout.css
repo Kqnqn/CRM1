@@ -1493,6 +1493,14 @@ video {
 .border-transparent {
   border-color: transparent;
 }
+.border-red-800 {
+  --tw-border-opacity: 1;
+  border-color: rgb(153 27 27 / var(--tw-border-opacity));
+}
+.border-orange-800 {
+  --tw-border-opacity: 1;
+  border-color: rgb(154 52 18 / var(--tw-border-opacity));
+}
 .border-l-transparent {
   border-left-color: transparent;
 }
@@ -1644,6 +1652,18 @@ video {
 .bg-yellow-50 {
   --tw-bg-opacity: 1;
   background-color: rgb(254 252 232 / var(--tw-bg-opacity));
+}
+.bg-red-950\/50 {
+  background-color: rgb(69 10 10 / 0.5);
+}
+.bg-orange-950\/30 {
+  background-color: rgb(67 20 7 / 0.3);
+}
+.bg-orange-950\/50 {
+  background-color: rgb(67 20 7 / 0.5);
+}
+.bg-red-950\/30 {
+  background-color: rgb(69 10 10 / 0.3);
 }
 .fill-current {
   fill: currentColor;
@@ -2065,6 +2085,18 @@ video {
   --tw-text-opacity: 1;
   color: rgb(133 77 14 / var(--tw-text-opacity));
 }
+.text-red-200 {
+  --tw-text-opacity: 1;
+  color: rgb(254 202 202 / var(--tw-text-opacity));
+}
+.text-orange-200 {
+  --tw-text-opacity: 1;
+  color: rgb(254 215 170 / var(--tw-text-opacity));
+}
+.text-orange-400 {
+  --tw-text-opacity: 1;
+  color: rgb(251 146 60 / var(--tw-text-opacity));
+}
 .underline-offset-4 {
   text-underline-offset: 4px;
 }
@@ -2382,6 +2414,14 @@ video {
 
 .hover\:bg-secondary\/80:hover {
   background-color: hsl(var(--secondary) / 0.8);
+}
+
+.hover\:bg-red-900\/50:hover {
+  background-color: rgb(127 29 29 / 0.5);
+}
+
+.hover\:bg-orange-900\/50:hover {
+  background-color: rgb(124 45 18 / 0.5);
 }
 
 .hover\:text-accent-foreground:hover {
