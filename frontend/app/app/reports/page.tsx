@@ -354,12 +354,12 @@ export default function ReportsPage() {
             <div className="space-y-3">
               {Object.entries(stats.accountsByStage).map(([stage, count]) => (
                 <div key={stage} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">{t(`status.${stage.toLowerCase()}`)}</span>
-                  <span className="text-lg font-semibold text-gray-900">{count}</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t(`stage.${stage.toLowerCase()}`)}</span>
+                  <span className="text-lg font-semibold text-foreground">{count}</span>
                 </div>
               ))}
               {Object.keys(stats.accountsByStage).length === 0 && (
-                <p className="text-center text-gray-500 py-4">{t('reports.no_accounts_data')}</p>
+                <p className="text-center text-muted-foreground py-4">{t('reports.no_accounts_data')}</p>
               )}
             </div>
           </CardContent>
