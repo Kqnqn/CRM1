@@ -335,12 +335,12 @@ export default function ReportsPage() {
             <div className="space-y-3">
               {Object.entries(stats.leadsByStatus).map(([status, count]) => (
                 <div key={status} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">{t(`status.${status.toLowerCase()}`)}</span>
-                  <span className="text-lg font-semibold text-gray-900">{count}</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t(`status.${status.toLowerCase()}`)}</span>
+                  <span className="text-lg font-semibold text-foreground">{count}</span>
                 </div>
               ))}
               {Object.keys(stats.leadsByStatus).length === 0 && (
-                <p className="text-center text-gray-500 py-4">{t('reports.no_leads_data')}</p>
+                <p className="text-center text-muted-foreground py-4">{t('reports.no_leads_data')}</p>
               )}
             </div>
           </CardContent>
