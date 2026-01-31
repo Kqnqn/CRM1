@@ -233,7 +233,7 @@ export default function AccountDetailPage() {
     <div>
       <RecordHeader
         title={account.name}
-        status={t(`status.${account.stage.toLowerCase()}`)}
+        status={t(`stage.${account.stage.toLowerCase()}`)}
         statusVariant={stageColors[account.stage]}
         fields={[
           { label: t('common.industry'), value: account.industry || '-' },
