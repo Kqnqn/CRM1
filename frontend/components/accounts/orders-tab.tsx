@@ -491,7 +491,7 @@ export function OrdersTab({ accountId }: OrdersTabProps) {
                       </TableRow>
                       {expandedOrder === order.id && (
                         <TableRow>
-                          <TableCell colSpan={8} className="bg-gray-50">
+                          <TableCell colSpan={8} className="bg-muted/50">
                             <div className="py-2">
                               <h4 className="text-sm font-medium mb-2">{t('orders.attached_files') || 'Attached Files'}</h4>
                               {order.documents && order.documents.length > 0 ? (

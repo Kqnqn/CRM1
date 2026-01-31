@@ -232,18 +232,18 @@ export function NotificationsBell() {
           {upcomingTasks.length > 0 && (
             <div className="p-4">
               <div className="flex items-center gap-2 mb-3">
-                <CheckCircle2 className="h-4 w-4 text-blue-600" />
-                <h4 className="font-medium text-gray-900">Upcoming Tasks (Next 24 Hours)</h4>
+                <CheckCircle2 className="h-4 w-4 text-blue-400" />
+                <h4 className="font-medium text-foreground">Upcoming Tasks (Next 24 Hours)</h4>
               </div>
               <div className="space-y-2">
                 {upcomingTasks.map((task) => (
                   <div
                     key={task.id}
-                    className="p-2 border border-gray-200 rounded cursor-pointer hover:bg-gray-50"
+                    className="p-2 border border-border rounded cursor-pointer hover:bg-muted/50"
                     onClick={() => handleTaskClick(task)}
                   >
                     <p className="text-sm font-medium">{task.subject}</p>
-                    <p className="text-xs text-gray-600 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {task.type} • Due {new Date(task.due_date).toLocaleDateString()} at {new Date(task.due_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
@@ -256,7 +256,7 @@ export function NotificationsBell() {
             overdueTasks.length === 0 &&
             servicesDueSoon.length === 0 &&
             servicesOverdue.length === 0 && (
-              <div className="p-8 text-center text-gray-500">
+              <div className="p-8 text-center text-muted-foreground">
                 <Bell className="h-12 w-12 mx-auto mb-2 opacity-50" />
                 <p>No notifications</p>
                 <p className="text-xs mt-1">You're all caught up!</p>
