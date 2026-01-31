@@ -784,6 +784,7 @@ export const translations = {
         'priority.high': 'High',
 
         // Stages
+        'stage.open': 'Open',
         'stage.prospecting': 'Prospecting',
         'stage.qualified': 'Qualification',
         'stage.proposal': 'Proposal',
