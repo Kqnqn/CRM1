@@ -383,7 +383,7 @@ export default function HomePage() {
           </CardHeader>
           <CardContent>
             {stats.leadsByStatus.length === 0 ? (
-              <p className="text-center py-4 text-gray-500">{t('dashboard.no_leads')}</p>
+              <p className="text-center py-4 text-muted-foreground">{t('dashboard.no_leads')}</p>
             ) : (
               <div className="space-y-3">
                 {stats.leadsByStatus.map((item) => (
@@ -392,13 +392,13 @@ export default function HomePage() {
                       <Badge
                         className={
                           item.status === 'CONVERTED'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-green-500/20 text-green-300'
                             : item.status === 'QUALIFIED'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-gray-100 text-gray-800'
+                              ? 'bg-blue-500/20 text-blue-300'
+                              : 'bg-muted text-muted-foreground'
                         }
                       >
-                        {item.status}
+                        {t(`status.${item.status.toLowerCase()}`)}
                       </Badge>
                     </div>
                     <div className="text-lg font-semibold">{item.count}</div>
