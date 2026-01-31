@@ -31,15 +31,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/app/accounts/page.js"
     ],
-    "/app/opportunities/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/app/opportunities/page.js"
-    ],
     "/app/leads/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/app/leads/page.js"
+    ],
+    "/app/opportunities/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/app/opportunities/page.js"
     ],
     "/app/contacts/page": [
       "static/chunks/webpack.js",
