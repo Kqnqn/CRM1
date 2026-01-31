@@ -156,7 +156,7 @@ export default function AccountsPage() {
                   <TableCell>{account.city || '-'}</TableCell>
                   <TableCell>{account.phone || '-'}</TableCell>
                   <TableCell>
-                    <Badge className={stageColors[account.stage]}>{t(`status.${account.stage.toLowerCase()}`)}</Badge>
+                    <Badge className={stageColors[account.stage]}>{t(`stage.${account.stage.toLowerCase()}`)}</Badge>
                   </TableCell>
                   <TableCell>{account.owner?.full_name}</TableCell>
                   <TableCell>
