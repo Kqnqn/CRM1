@@ -24,14 +24,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Plus, Wrench, Edit, Trash2, Calendar, AlertCircle } from 'lucide-react';
 import { format, addMonths, addYears, parseISO, isPast, differenceInDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n/language-context';
-import { cn } from '@/lib/utils';
 
 export default function ServicesPage() {
   const [services, setServices] = useState<ServiceContract[]>([]);
@@ -115,16 +112,6 @@ export default function ServicesPage() {
       formData.interval_unit
     );
 
-    // Validate required fields
-    if (!formData.account_id) {
-      toast({
-        title: 'Greška',
-        description: 'Molimo izaberite kompaniju',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     const serviceData: any = {
       account_id: formData.account_id,
       device_type: formData.device_type,
@@ -139,14 +126,10 @@ export default function ServicesPage() {
       next_service_due_at: nextServiceDueAt.toISOString(),
       service_price: formData.service_price ? parseFloat(formData.service_price) : null,
       currency: formData.currency,
+      assigned_to_id: formData.assigned_to_id || null,
       status: formData.status,
       notes: formData.notes || null,
     };
-
-    // Only add assigned_to_id if it has a value
-    if (formData.assigned_to_id) {
-      serviceData.assigned_to_id = formData.assigned_to_id;
-    }
 
     if (editingService) {
       const { error } = await supabase
@@ -161,17 +144,9 @@ export default function ServicesPage() {
         });
       }
     } else {
-      console.log('Service data being sent:', serviceData);
       const { error } = await supabase.from('service_contracts').insert(serviceData);
 
-      if (error) {
-        console.error('Error creating service:', error);
-        toast({
-          title: 'Error',
-          description: error.message,
-          variant: 'destructive',
-        });
-      } else {
+      if (!error) {
         toast({
           title: t('services.success_created'),
           description: t('services.success_created'),
@@ -295,8 +270,8 @@ export default function ServicesPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{t('services.title')}</h1>
-          <p className="text-muted-foreground mt-1">{t('subtitle.manage_services') || 'Upravljajte vašim ugovorima o servisu'}</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('services.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('subtitle.manage_services') || 'Upravljajte vašim ugovorima o servisu'}</p>
         </div>
         <Dialog open={showDialog} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
@@ -392,39 +367,12 @@ export default function ServicesPage() {
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>{t('services.last_service_date')}</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !formData.last_service_at && "text-muted-foreground"
-                        )}
-                      >
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {formData.last_service_at ? (
-                          format(new Date(formData.last_service_at), "PPP")
-                        ) : (
-                          <span>{t('common.pick_date') || 'Pick a date'}</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={formData.last_service_at ? new Date(formData.last_service_at) : undefined}
-                        onSelect={(date) => {
-                          if (date) {
-                            // Set to noon to avoid timezone issues
-                            const adjustedDate = new Date(date);
-                            adjustedDate.setHours(12, 0, 0, 0);
-                            setFormData({ ...formData, last_service_at: adjustedDate.toISOString() });
-                          }
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Input
+                    type="datetime-local"
+                    value={formData.last_service_at}
+                    onChange={(e) => setFormData({ ...formData, last_service_at: e.target.value })}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>{t('services.interval_value')}</Label>
@@ -596,7 +544,7 @@ function ServiceList({
   if (services.length === 0) {
     return (
       <Card>
-        <CardContent className="p-8 text-center text-muted-foreground">
+        <CardContent className="p-8 text-center text-gray-500">
           {t('services.no_services')}
         </CardContent>
       </Card>
@@ -612,28 +560,28 @@ function ServiceList({
               <div className="flex-1">
                 <div className="flex items-center space-x-3">
                   <Link href={`/app/services/${service.id}`}>
-                    <h3 className="font-medium text-foreground hover:text-blue-600 cursor-pointer">
+                    <h3 className="font-medium text-gray-900 hover:text-blue-600 cursor-pointer">
                       {service.device_type}
                     </h3>
                   </Link>
                   {getStatusBadge(service)}
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-gray-600 mt-1">
                   {service.account?.name} - {service.location_address}
                 </p>
                 {service.device_serial && (
-                  <p className="text-xs text-muted-foreground mt-1">{t('services.device_serial')}: {service.device_serial}</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('services.device_serial')}: {service.device_serial}</p>
                 )}
                 <div className="flex items-center space-x-4 mt-2 text-sm">
-                  <span className="text-muted-foreground">
+                  <span className="text-gray-600">
                     <Calendar className="h-3 w-3 inline mr-1" />
                     {t('services.table.next_service')}: {format(parseISO(service.next_service_due_at), 'MMM d, yyyy')}
                   </span>
-                  <span className="text-muted-foreground">
+                  <span className="text-gray-500">
                     {t('services.interval_unit')}: {service.interval_value} {service.interval_unit === 'MONTHS' ? t('services.months') : t('services.years')}
                   </span>
                   {service.assigned_to && (
-                    <span className="text-muted-foreground">
+                    <span className="text-gray-500">
                       {t('activities.table.assigned_to')}: {service.assigned_to.full_name}
                     </span>
                   )}

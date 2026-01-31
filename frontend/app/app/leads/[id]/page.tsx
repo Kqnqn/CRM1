@@ -214,8 +214,8 @@ export default function LeadDetailPage() {
               <Card>
                 <CardContent className="p-6">
                   {lead.status === 'CONVERTED' && lead.converted_account_id && (
-                    <div className="mb-6 p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-900 rounded-lg">
-                      <p className="text-sm font-medium text-green-800 dark:text-green-400">
+                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-sm font-medium text-green-800">
                         {t('leads.converted_msg')}
                       </p>
                       <Link
@@ -238,7 +238,7 @@ export default function LeadDetailPage() {
                           }
                         />
                       ) : (
-                        <p className="text-foreground">{lead.company_name}</p>
+                        <p className="text-gray-900">{lead.company_name}</p>
                       )}
                     </div>
 
@@ -252,7 +252,7 @@ export default function LeadDetailPage() {
                           }
                         />
                       ) : (
-                        <p className="text-foreground">{lead.contact_person_name}</p>
+                        <p className="text-gray-900">{lead.contact_person_name}</p>
                       )}
                     </div>
 
@@ -267,7 +267,7 @@ export default function LeadDetailPage() {
                           }
                         />
                       ) : (
-                        <p className="text-foreground">{lead.email}</p>
+                        <p className="text-gray-900">{lead.email}</p>
                       )}
                     </div>
 
@@ -281,7 +281,7 @@ export default function LeadDetailPage() {
                           }
                         />
                       ) : (
-                        <p className="text-foreground">{lead.phone || '-'}</p>
+                        <p className="text-gray-900">{lead.phone || '-'}</p>
                       )}
                     </div>
 
@@ -295,7 +295,7 @@ export default function LeadDetailPage() {
                           }
                         />
                       ) : (
-                        <p className="text-foreground">{lead.source || '-'}</p>
+                        <p className="text-gray-900">{lead.source || '-'}</p>
                       )}
                     </div>
 
@@ -319,7 +319,7 @@ export default function LeadDetailPage() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <p className="text-foreground">{lead.status}</p>
+                        <p className="text-gray-900">{lead.status}</p>
                       )}
                     </div>
                   </div>

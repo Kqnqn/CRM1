@@ -61,8 +61,6 @@ export default function AccountDetailPage() {
   const [showCloseDialog, setShowCloseDialog] = useState(false);
   const [closeStage, setCloseStage] = useState<'CLOSED_WON' | 'CLOSED_LOST'>('CLOSED_WON');
   const [lostReason, setLostReason] = useState('');
-  const [showNoteHistory, setShowNoteHistory] = useState(false);
-  const [noteHistory, setNoteHistory] = useState<any[]>([]);
   const { t, formatCurrency } = useLanguage();
 
   const fetchAccount = async () => {
@@ -116,9 +114,6 @@ export default function AccountDetailPage() {
         country: formData.country,
         phone: formData.phone,
         website: formData.website,
-        tax_id: formData.tax_id,
-        vat_id: formData.vat_id,
-        notes: formData.notes,
       })
       .eq('id', params.id);
 
@@ -258,9 +253,9 @@ export default function AccountDetailPage() {
               <Card>
                 <CardContent className="p-6">
                   {account.stage === 'CLOSED_LOST' && account.lost_reason && (
-                    <div className="mb-6 p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-900 rounded-lg">
-                      <p className="text-sm font-medium text-red-800 dark:text-red-400">{t('accounts.lost_reason')}:</p>
-                      <p className="text-sm text-red-700 dark:text-red-400 mt-1">{account.lost_reason}</p>
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-sm font-medium text-red-800">{t('accounts.lost_reason')}:</p>
+                      <p className="text-sm text-red-700 mt-1">{account.lost_reason}</p>
                     </div>
                   )}
 
@@ -275,7 +270,7 @@ export default function AccountDetailPage() {
                           }
                         />
                       ) : (
-                        <p className="text-foreground">{account.name}</p>
+                        <p className="text-gray-900">{account.name}</p>
                       )}
                     </div>
 
@@ -289,7 +284,7 @@ export default function AccountDetailPage() {
                           }
                         />
                       ) : (
-                        <p className="text-foreground">{account.industry || '-'}</p>
+                        <p className="text-gray-900">{account.industry || '-'}</p>
                       )}
                     </div>
 
@@ -303,7 +298,7 @@ export default function AccountDetailPage() {
                           }
                         />
                       ) : (
-                        <p className="text-foreground">{account.phone || '-'}</p>
+                        <p className="text-gray-900">{account.phone || '-'}</p>
                       )}
                     </div>
 
@@ -317,7 +312,7 @@ export default function AccountDetailPage() {
                           }
                         />
                       ) : (
-                        <p className="text-foreground">{account.website || '-'}</p>
+                        <p className="text-gray-900">{account.website || '-'}</p>
                       )}
                     </div>
 
@@ -331,7 +326,7 @@ export default function AccountDetailPage() {
                           }
                         />
                       ) : (
-                        <p className="text-foreground">{account.address || '-'}</p>
+                        <p className="text-gray-900">{account.address || '-'}</p>
                       )}
                     </div>
 
@@ -345,7 +340,7 @@ export default function AccountDetailPage() {
                           }
                         />
                       ) : (
-                        <p className="text-foreground">{account.city || '-'}</p>
+                        <p className="text-gray-900">{account.city || '-'}</p>
                       )}
                     </div>
 
@@ -359,7 +354,7 @@ export default function AccountDetailPage() {
                           }
                         />
                       ) : (
-                        <p className="text-foreground">{account.state || '-'}</p>
+                        <p className="text-gray-900">{account.state || '-'}</p>
                       )}
                     </div>
 
@@ -373,7 +368,7 @@ export default function AccountDetailPage() {
                           }
                         />
                       ) : (
-                        <p className="text-foreground">{account.postal_code || '-'}</p>
+                        <p className="text-gray-900">{account.postal_code || '-'}</p>
                       )}
                     </div>
 
@@ -387,73 +382,7 @@ export default function AccountDetailPage() {
                           }
                         />
                       ) : (
-                        <p className="text-foreground">{account.country || '-'}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Tax Information Section */}
-                  <div className="mt-8 pt-6 border-t border-border">
-                    <h4 className="text-lg font-medium mb-4">{t('accounts.tax_information') || 'Tax Information'}</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label>{t('accounts.tax_id') || 'JIB (Tax ID)'}</Label>
-                        {editing ? (
-                          <Input
-                            value={formData.tax_id || ''}
-                            onChange={(e) =>
-                              setFormData({ ...formData, tax_id: e.target.value })
-                            }
-                            placeholder="e.g., 123456789"
-                          />
-                        ) : (
-                          <p className="text-foreground">{account.tax_id || '-'}</p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>{t('accounts.vat_id') || 'PDV (VAT ID)'}</Label>
-                        {editing ? (
-                          <Input
-                            value={formData.vat_id || ''}
-                            onChange={(e) =>
-                              setFormData({ ...formData, vat_id: e.target.value })
-                            }
-                            placeholder="e.g., 987654321"
-                          />
-                        ) : (
-                          <p className="text-foreground">{account.vat_id || '-'}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Notes Section */}
-                  <div className="mt-8 pt-6 border-t border-border">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-medium">{t('common.notes') || 'Notes'}</h4>
-                      {!editing && account.notes && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowNoteHistory(true)}
-                        >
-                          {t('accounts.note_history') || 'Note History'}
-                        </Button>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      {editing ? (
-                        <Textarea
-                          value={formData.notes || ''}
-                          onChange={(e) =>
-                            setFormData({ ...formData, notes: e.target.value })
-                          }
-                          placeholder={t('accounts.notes_placeholder') || 'Enter notes about this account...'}
-                          rows={4}
-                        />
-                      ) : (
-                        <p className="text-foreground whitespace-pre-wrap">{account.notes || '-'}</p>
+                        <p className="text-gray-900">{account.country || '-'}</p>
                       )}
                     </div>
                   </div>
@@ -485,7 +414,7 @@ export default function AccountDetailPage() {
                       </Button>
                     </div>
                     {contacts.length === 0 ? (
-                      <p className="text-muted-foreground text-center py-4">{t('contacts.no_contacts')}</p>
+                      <p className="text-gray-500 text-center py-4">{t('contacts.no_contacts')}</p>
                     ) : (
                       <Table>
                         <TableHeader>
@@ -528,7 +457,7 @@ export default function AccountDetailPage() {
                       </Button>
                     </div>
                     {opportunities.length === 0 ? (
-                      <p className="text-muted-foreground text-center py-4">{t('opportunities.no_opportunities')}</p>
+                      <p className="text-gray-500 text-center py-4">{t('opportunities.no_opportunities')}</p>
                     ) : (
                       <Table>
                         <TableHeader>
@@ -603,8 +532,8 @@ export default function AccountDetailPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="CLOSED_WON">{t('status.closed_won')}</SelectItem>
-                  <SelectItem value="CLOSED_LOST">{t('status.closed_lost')}</SelectItem>
+                  <SelectItem value="CLOSED_WON">{t('stage.closed_won')}</SelectItem>
+                  <SelectItem value="CLOSED_LOST">{t('stage.closed_lost')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -629,39 +558,6 @@ export default function AccountDetailPage() {
               </Button>
               <Button onClick={handleClose}>{t('accounts.close_account')}</Button>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Note History Dialog */}
-      <Dialog open={showNoteHistory} onOpenChange={setShowNoteHistory}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{t('accounts.note_history') || 'Note History'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-            {noteHistory.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">{t('accounts.no_note_history') || 'No note history available'}</p>
-            ) : (
-              noteHistory.map((history) => (
-                <div key={history.id} className="border rounded-lg p-4 space-y-2">
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>{history.edited_by?.full_name || 'Unknown'}</span>
-                    <span>{new Date(history.edited_at).toLocaleString()}</span>
-                  </div>
-                  {history.old_note && (
-                    <div className="bg-red-50 dark:bg-red-950 p-2 rounded text-sm">
-                      <span className="text-red-600 font-medium">{t('common.previous') || 'Previous'}:</span>
-                      <p className="text-foreground mt-1">{history.old_note}</p>
-                    </div>
-                  )}
-                  <div className="bg-green-50 p-2 rounded text-sm">
-                    <span className="text-green-600 font-medium">{t('common.new') || 'New'}:</span>
-                    <p className="text-foreground mt-1">{history.new_note}</p>
-                  </div>
-                </div>
-              ))
-            )}
           </div>
         </DialogContent>
       </Dialog>

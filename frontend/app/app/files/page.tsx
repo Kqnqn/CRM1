@@ -221,7 +221,7 @@ export default function FilesPage() {
     if (mimeType?.includes('spreadsheet') || mimeType?.includes('excel'))
       return <FileSpreadsheet className="h-5 w-5 text-green-600" />;
     if (mimeType?.includes('pdf')) return <FileText className="h-5 w-5 text-red-600" />;
-    return <File className="h-5 w-5 text-muted-foreground" />;
+    return <File className="h-5 w-5 text-gray-600" />;
   };
 
   const formatFileSize = (bytes: number) => {
@@ -236,8 +236,8 @@ export default function FilesPage() {
     <div className="p-6">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{t('files.title')}</h1>
-          <p className="text-muted-foreground mt-1">{t('subtitle.manage_files')}</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('files.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('subtitle.manage_files')}</p>
         </div>
         <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
           <DialogTrigger asChild>
@@ -253,25 +253,14 @@ export default function FilesPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>{t('common.file')}</Label>
-                <label className="relative flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background items-center gap-2 cursor-pointer hover:bg-accent/50 transition-colors">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    onChange={handleFileSelect}
-                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp"
-                    className="sr-only"
-                  />
-                  <span className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-7 px-3 shrink-0">
-                    {t('documents.form.choose_files')}
-                  </span>
-                  <span className="text-muted-foreground text-sm truncate">
-                    {selectedFile
-                      ? selectedFile.name
-                      : t('documents.form.no_file_chosen')}
-                  </span>
-                </label>
+                <Input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileSelect}
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp"
+                />
                 {selectedFile && (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-600">
                     {t('common.selected')}: {selectedFile.name} ({formatFileSize(selectedFile.size)})
                   </p>
                 )}
@@ -318,8 +307,8 @@ export default function FilesPage() {
           {loading ? (
             <div className="text-center py-8">{t('dashboard.loading')}</div>
           ) : documents.length === 0 ? (
-            <CardContent className="p-12 text-center text-muted-foreground">
-              <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <CardContent className="p-12 text-center text-gray-500">
+              <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
               <p className="text-lg font-medium">{t('files.no_files')}</p>
               <p>{t('message.upload_first_document')}</p>
             </CardContent>
@@ -347,7 +336,7 @@ export default function FilesPage() {
                     <TableCell>
                       <div>
                         <p>{doc.uploader?.full_name}</p>
-                        <p className="text-sm text-muted-foreground">{doc.uploader?.email}</p>
+                        <p className="text-sm text-gray-500">{doc.uploader?.email}</p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -411,13 +400,13 @@ export default function FilesPage() {
             ) : previewDoc?.mime_type?.startsWith('text/') ? (
               <iframe
                 src={previewUrl}
-                className="w-full h-[70vh] border-0 rounded-lg bg-card"
+                className="w-full h-[70vh] border-0 rounded-lg bg-white"
                 title={previewDoc.title}
               />
             ) : (
               <div className="text-center py-12">
-                <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-4">
+                <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 mb-4">
                   {t('common.preview_not_available')}
                 </p>
                 <Button onClick={() => previewDoc && handleDownload(previewDoc)}>

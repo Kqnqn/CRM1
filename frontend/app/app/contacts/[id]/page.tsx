@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { supabase, Contact } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { RecordHeader } from '@/components/shared/record-header';
@@ -10,13 +10,10 @@ import { ActivityTimeline } from '@/components/shared/activity-timeline';
 import { DocumentsTab } from '@/components/accounts/documents-tab';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Edit } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ContactDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const [contact, setContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
@@ -47,13 +44,6 @@ export default function ContactDetailPage() {
           { label: t('common.email'), value: contact.email || '-' },
           { label: t('common.phone'), value: contact.phone || '-' },
         ]}
-        actions={[
-          {
-            label: t('common.edit'),
-            variant: 'outline',
-            onClick: () => router.push(`/app/contacts/${contact.id}/edit`),
-          },
-        ]}
       />
 
       <RecordTabs
@@ -67,7 +57,7 @@ export default function ContactDetailPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label>{t('contacts.table.account')}</Label>
-                      <p className="text-foreground">
+                      <p className="text-gray-900">
                         {contact.account && (
                           <Link
                             href={`/app/accounts/${contact.account.id}`}
@@ -80,23 +70,23 @@ export default function ContactDetailPage() {
                     </div>
                     <div className="space-y-2">
                       <Label>{t('contacts.table.title')}</Label>
-                      <p className="text-foreground">{contact.title || '-'}</p>
+                      <p className="text-gray-900">{contact.title || '-'}</p>
                     </div>
                     <div className="space-y-2">
                       <Label>{t('common.email')}</Label>
-                      <p className="text-foreground">{contact.email || '-'}</p>
+                      <p className="text-gray-900">{contact.email || '-'}</p>
                     </div>
                     <div className="space-y-2">
                       <Label>{t('common.phone')}</Label>
-                      <p className="text-foreground">{contact.phone || '-'}</p>
+                      <p className="text-gray-900">{contact.phone || '-'}</p>
                     </div>
                     <div className="space-y-2">
                       <Label>Mobile</Label>
-                      <p className="text-foreground">{contact.mobile || '-'}</p>
+                      <p className="text-gray-900">{contact.mobile || '-'}</p>
                     </div>
                     <div className="space-y-2">
                       <Label>{t('common.industry')}</Label>
-                      <p className="text-foreground">{contact.department || '-'}</p>
+                      <p className="text-gray-900">{contact.department || '-'}</p>
                     </div>
                   </div>
                 </CardContent>

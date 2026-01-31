@@ -17,12 +17,9 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, Check, ChevronsUpDown } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n/language-context';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { cn } from '@/lib/utils';
 
 interface OpportunityFormProps {
     initialData?: Opportunity;
@@ -34,9 +31,8 @@ export function OpportunityForm({ initialData, initialAccountId }: OpportunityFo
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [accounts, setAccounts] = useState<Array<{ id: string; name: string; city?: string; industry?: string }>>([]);
+    const [accounts, setAccounts] = useState<Array<{ id: string; name: string }>>([]);
     const [contacts, setContacts] = useState<Array<{ id: string; first_name: string; last_name: string }>>([]);
-    const [accountSearchOpen, setAccountSearchOpen] = useState(false);
     const { t } = useLanguage();
 
     const [formData, setFormData] = useState({
@@ -54,15 +50,13 @@ export function OpportunityForm({ initialData, initialAccountId }: OpportunityFo
         const fetchData = async () => {
             const { data: accountsData } = await supabase
                 .from('accounts')
-                .select('id, name, city, industry')
+                .select('id, name')
                 .eq('stage', 'OPEN')
                 .order('name');
             if (accountsData) setAccounts(accountsData);
         };
         fetchData();
     }, []);
-
-    const selectedAccount = accounts.find((a) => a.id === formData.account_id);
 
     useEffect(() => {
         if (formData.account_id) {
@@ -168,67 +162,22 @@ export function OpportunityForm({ initialData, initialAccountId }: OpportunityFo
                                 <Label htmlFor="account_id">
                                     {t('opportunities.table.account')} <span className="text-red-500">*</span>
                                 </Label>
-                                <Popover open={accountSearchOpen} onOpenChange={setAccountSearchOpen}>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            role="combobox"
-                                            aria-expanded={accountSearchOpen}
-                                            className="w-full justify-between"
-                                            id="account_id"
-                                        >
-                                            {selectedAccount ? (
-                                                <span>
-                                                    {selectedAccount.name}
-                                                    {selectedAccount.city && (
-                                                        <span className="text-gray-500 ml-2">({selectedAccount.city})</span>
-                                                    )}
-                                                </span>
-                                            ) : (
-                                                t('common.select_account')
-                                            )}
-                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-[400px] p-0">
-                                        <Command>
-                                            <CommandInput placeholder={t('common.search') + '...'} />
-                                            <CommandList>
-                                                <CommandEmpty>{t('common.no_results') || 'No results found.'}</CommandEmpty>
-                                                <CommandGroup>
-                                                    {accounts.map((account) => (
-                                                        <CommandItem
-                                                            key={account.id}
-                                                            value={account.id}
-                                                            onSelect={(currentValue) => {
-                                                                updateFormData('account_id', currentValue === formData.account_id ? '' : currentValue);
-                                                                setAccountSearchOpen(false);
-                                                            }}
-                                                        >
-                                                            <Check
-                                                                className={cn(
-                                                                    "mr-2 h-4 w-4",
-                                                                    formData.account_id === account.id ? "opacity-100" : "opacity-0"
-                                                                )}
-                                                            />
-                                                            <div className="flex flex-col">
-                                                                <span>{account.name}</span>
-                                                                {(account.city || account.industry) && (
-                                                                    <span className="text-xs text-gray-500">
-                                                                        {[account.city, account.industry].filter(Boolean).join(' • ')}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </CommandItem>
-                                                    ))}
-                                                </CommandGroup>
-                                            </CommandList>
-                                        </Command>
-                                    </PopoverContent>
-                                </Popover>
-                                {!formData.account_id && (
-                                    <p className="text-sm text-red-500">{t('common.required_field')}</p>
-                                )}
+                                <Select
+                                    value={formData.account_id}
+                                    onValueChange={(value) => updateFormData('account_id', value)}
+                                    required
+                                >
+                                    <SelectTrigger id="account_id">
+                                        <SelectValue placeholder={t('common.select_account')} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {accounts.map((account) => (
+                                            <SelectItem key={account.id} value={account.id}>
+                                                {account.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <div className="space-y-2 md:col-span-2">
@@ -264,8 +213,8 @@ export function OpportunityForm({ initialData, initialAccountId }: OpportunityFo
                                         <SelectItem value="QUALIFIED">{t('stage.qualified')}</SelectItem>
                                         <SelectItem value="PROPOSAL">{t('stage.proposal')}</SelectItem>
                                         <SelectItem value="NEGOTIATION">{t('stage.negotiation')}</SelectItem>
-                                        <SelectItem value="CLOSED_WON">{t('status.closed_won')}</SelectItem>
-                                        <SelectItem value="CLOSED_LOST">{t('status.closed_lost')}</SelectItem>
+                                        <SelectItem value="CLOSED_WON">{t('stage.closed_won')}</SelectItem>
+                                        <SelectItem value="CLOSED_LOST">{t('stage.closed_lost')}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

@@ -226,16 +226,16 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
                   {item.itemType === 'activity' && item.type === 'TASK' && (
-                    <CheckSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <CheckSquare className="h-5 w-5 text-blue-600" />
                   )}
                   {item.itemType === 'activity' && item.type === 'EVENT' && (
-                    <Calendar className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <Calendar className="h-5 w-5 text-green-600" />
                   )}
                   {item.itemType === 'note' && (
-                    <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                    <FileText className="h-5 w-5 text-purple-600" />
                   )}
                   {item.itemType === 'audit' && (
-                    <History className="h-5 w-5 text-muted-foreground" />
+                    <History className="h-5 w-5 text-gray-600" />
                   )}
                 </div>
                 <div className="flex-1">
@@ -246,7 +246,7 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
                           <span className="font-medium">{item.subject}</span>
                           <Badge variant="outline">{t(`status.${item.status?.toLowerCase()}`)}</Badge>
                           {item.completed && (
-                            <Badge className="bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-400">{t('status.completed')}</Badge>
+                            <Badge className="bg-green-100 text-green-800">{t('status.completed')}</Badge>
                           )}
                         </div>
                         <div className="flex items-center gap-2">
@@ -257,7 +257,7 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
                               onClick={() => handleMarkComplete(item.id)}
                               title={t('activities.mark_complete_tip')}
                             >
-                              <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                              <Check className="h-4 w-4 text-green-600" />
                             </Button>
                           )}
                           <Button
@@ -274,28 +274,28 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
                             onClick={() => handleDeleteActivity(item.id)}
                             title={t('common.delete')}
                           >
-                            <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                            <Trash2 className="h-4 w-4 text-red-600" />
                           </Button>
                         </div>
                       </div>
                       {item.description && (
-                        <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
+                        <p className="text-sm text-gray-600 mt-1">{item.description}</p>
                       )}
                       {item.due_date && (
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-gray-600 mt-1">
                           {t('activities.table.due_date')}: {format(new Date(item.due_date), 'MMM d, yyyy h:mm a')}
                         </p>
                       )}
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-gray-500 mt-1">
                         {item.owner?.full_name} • {format(new Date(item.created_at), 'MMM d, yyyy h:mm a')}
                       </p>
                     </>
                   )}
                   {item.itemType === 'note' && (
                     <>
-                      {item.title && <p className="font-medium text-foreground">{item.title}</p>}
-                      <p className="text-sm text-foreground">{item.content}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      {item.title && <p className="font-medium">{item.title}</p>}
+                      <p className="text-sm text-gray-700">{item.content}</p>
+                      <p className="text-xs text-gray-500 mt-1">
                         {item.creator?.full_name} • {format(new Date(item.created_at), 'MMM d, yyyy h:mm a')}
                       </p>
                     </>
@@ -303,31 +303,15 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
                   {item.itemType === 'audit' && (
                     <>
                       <p className="text-sm">
-                        <span className="font-medium">{t(`audit.${item.action?.toLowerCase()}`) || item.action}</span>
+                        <span className="font-medium">{item.action}</span>
                         {item.field_name && ` - ${item.field_name}`}
                       </p>
                       {item.old_value && item.new_value && (
-                        <p className="text-xs text-muted-foreground">
-                          {t('activities.changed_from_to')
-                            .replace('{old}', (() => {
-                              const key = item.old_value.toLowerCase();
-                              const statusTrans = t(`status.${key}`);
-                              if (statusTrans !== `status.${key}`) return statusTrans;
-                              const stageTrans = t(`stage.${key}`);
-                              if (stageTrans !== `stage.${key}`) return stageTrans;
-                              return item.old_value;
-                            })())
-                            .replace('{new}', (() => {
-                              const key = item.new_value.toLowerCase();
-                              const statusTrans = t(`status.${key}`);
-                              if (statusTrans !== `status.${key}`) return statusTrans;
-                              const stageTrans = t(`stage.${key}`);
-                              if (stageTrans !== `stage.${key}`) return stageTrans;
-                              return item.new_value;
-                            })())}
+                        <p className="text-xs text-gray-600">
+                          {t('activities.changed_from_to').replace('{old}', item.old_value).replace('{new}', item.new_value)}
                         </p>
                       )}
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-gray-500 mt-1">
                         {item.user?.full_name} • {format(new Date(item.created_at), 'MMM d, yyyy h:mm a')}
                       </p>
                     </>
@@ -340,7 +324,7 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
       </div>
 
       {combinedTimeline.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
+        <div className="text-center py-8 text-gray-500">
           {t('activities.no_activity_yet')}
         </div>
       )}

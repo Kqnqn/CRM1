@@ -50,9 +50,6 @@ export interface Account {
   country?: string;
   phone?: string;
   website?: string;
-  tax_id?: string;
-  vat_id?: string;
-  notes?: string;
   stage: 'OPEN' | 'CLOSED_WON' | 'CLOSED_LOST';
   closed_at?: string;
   lost_reason?: string;
@@ -62,9 +59,6 @@ export interface Account {
   updated_at: string;
   owner?: Profile;
 }
-
-export type ContactType = 'LEGAL_ENTITY' | 'INDIVIDUAL';
-export type IndustryType = 'HORECA' | 'RETAIL' | 'WHOLESALE' | 'MANUFACTURING' | 'OTHER';
 
 export interface Contact {
   id: string;
@@ -76,8 +70,6 @@ export interface Contact {
   mobile?: string;
   title?: string;
   department?: string;
-  contact_type?: ContactType;
-  industry?: IndustryType;
   owner_id: string;
   created_at: string;
   updated_at: string;
@@ -212,24 +204,4 @@ export interface ServiceLog {
   created_at: string;
   service?: ServiceContract;
   performed_by?: Profile;
-}
-
-export interface NoteHistory {
-  id: string;
-  entity_type: string;
-  entity_id: string;
-  old_note?: string;
-  new_note?: string;
-  edited_by_id: string;
-  edited_at: string;
-  edited_by?: Profile;
-}
-
-export interface OrderDocument {
-  id: string;
-  order_id: string;
-  document_id: string;
-  file_category: 'INVOICE' | 'PROFORMA' | 'DELIVERY_NOTE' | 'OTHER';
-  created_at: string;
-  document?: Document;
 }

@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { supabase, Document, OrderDocument } from '@/lib/supabase/client';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Upload, Download, File as FileIcon, Edit, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Upload, Download, File, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/lib/i18n/language-context';
 
@@ -47,10 +47,6 @@ interface Order {
   created_at: string;
 }
 
-interface OrderWithDocuments extends Order {
-  documents?: (OrderDocument & { document: Document })[];
-}
-
 interface OrdersTabProps {
   accountId: string;
 }
@@ -64,16 +60,11 @@ const statusColors: Record<string, string> = {
 };
 
 export function OrdersTab({ accountId }: OrdersTabProps) {
-  const [orders, setOrders] = useState<OrderWithDocuments[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
-  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-  const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const [uploadingOrder, setUploadingOrder] = useState<Order | null>(null);
-  const [fileCategory, setFileCategory] = useState<'INVOICE' | 'PROFORMA' | 'DELIVERY_NOTE' | 'OTHER'>('INVOICE');
-  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     order_number: '',
     ordered_at: new Date().toISOString().split('T')[0],
@@ -245,126 +236,6 @@ export function OrdersTab({ accountId }: OrdersTabProps) {
     }
   };
 
-  const handleFileUpload = async (file: File | undefined) => {
-    if (!file || !uploadingOrder) return;
-
-    setUploading(true);
-    try {
-      // Upload file to storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `order-documents/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Create document record
-      const { data: docData, error: docError } = await supabase
-        .from('documents')
-        .insert({
-          title: file.name,
-          file_name: file.name,
-          file_size: file.size,
-          mime_type: file.type,
-          storage_key: filePath,
-          uploaded_by: user?.id,
-        })
-        .select()
-        .single();
-
-      if (docError) throw docError;
-
-      // Create order document link
-      const { error: linkError } = await supabase
-        .from('order_documents')
-        .insert({
-          order_id: uploadingOrder.id,
-          document_id: docData.id,
-          file_category: fileCategory,
-        });
-
-      if (linkError) throw linkError;
-
-      toast({
-        title: t('orders.file_uploaded') || 'File uploaded successfully',
-      });
-
-      setShowUploadDialog(false);
-      setUploadingOrder(null);
-      fetchOrders();
-    } catch (error: any) {
-      toast({
-        title: t('orders.file_upload_failed') || 'Failed to upload file',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleDownload = async (doc: Document) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from('documents')
-        .download(doc.storage_key);
-
-      if (error) throw error;
-
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = doc.file_name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error: any) {
-      toast({
-        title: t('orders.download_failed') || 'Failed to download file',
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleDeleteFile = async (orderDocId: string, documentId: string) => {
-    if (!confirm(t('orders.delete_file_confirm') || 'Are you sure you want to delete this file?')) return;
-
-    try {
-      // Delete order document link
-      const { error: linkError } = await supabase
-        .from('order_documents')
-        .delete()
-        .eq('id', orderDocId);
-
-      if (linkError) throw linkError;
-
-      // Delete document record
-      const { error: docError } = await supabase
-        .from('documents')
-        .delete()
-        .eq('id', documentId);
-
-      if (docError) throw docError;
-
-      toast({
-        title: t('orders.file_deleted') || 'File deleted successfully',
-      });
-
-      fetchOrders();
-    } catch (error: any) {
-      toast({
-        title: t('orders.file_delete_failed') || 'Failed to delete file',
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  };
-
   const isOverdue = (order: Order) => {
     if (!order.due_date || order.status === 'PAID' || order.status === 'CANCELLED') {
       return false;
@@ -429,109 +300,44 @@ export function OrdersTab({ accountId }: OrdersTabProps) {
                   const overdue = isOverdue(order);
 
                   return (
-                    <React.Fragment key={order.id}>
-                      <TableRow className={overdue ? 'bg-red-50' : ''}>
-                        <TableCell className="font-medium">{order.order_number}</TableCell>
-                        <TableCell>{new Date(order.ordered_at).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <Badge className={statusColors[order.status] || statusColors.PENDING}>
-                            {t(`status.${order.status.toLowerCase()}`)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {formatCurrency(order.amount)}
-                        </TableCell>
-                        <TableCell>
-                          {formatCurrency(order.paid_amount)}
-                        </TableCell>
-                        <TableCell className={outstanding > 0 ? 'text-red-600 font-semibold' : 'text-green-600'}>
-                          {formatCurrency(outstanding)}
-                        </TableCell>
-                        <TableCell>
-                          {order.due_date ? (
-                            <span className={overdue ? 'text-red-600 font-semibold' : ''}>
-                              {new Date(order.due_date).toLocaleDateString()}
-                              {overdue && ` ${t('orders.overdue_tag')}`}
-                            </span>
-                          ) : (
-                            '-'
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setUploadingOrder(order);
-                                setShowUploadDialog(true);
-                              }}
-                              title="Upload file"
-                            >
-                              <Upload className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEditOrder(order)}
-                              title="Edit order"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
-                              title={expandedOrder === order.id ? "Hide files" : "Show files"}
-                            >
-                              {expandedOrder === order.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      {expandedOrder === order.id && (
-                        <TableRow>
-                          <TableCell colSpan={8} className="bg-muted/50">
-                            <div className="py-2">
-                              <h4 className="text-sm font-medium mb-2">{t('orders.attached_files') || 'Attached Files'}</h4>
-                              {order.documents && order.documents.length > 0 ? (
-                                <div className="space-y-2">
-                                  {order.documents.map((doc) => (
-                                    <div key={doc.id} className="flex items-center justify-between bg-card p-2 rounded border border-border">
-                                      <div className="flex items-center gap-2">
-                                        <FileIcon className="h-4 w-4 text-blue-500" />
-                                        <span className="text-sm">{doc.document?.file_name}</span>
-                                        <Badge variant="outline" className="text-xs">
-                                          {doc.file_category}
-                                        </Badge>
-                                      </div>
-                                      <div className="flex items-center gap-1">
-                                        <Button
-                                          size="sm"
-                                          variant="ghost"
-                                          onClick={() => handleDownload(doc.document)}
-                                        >
-                                          <Download className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          variant="ghost"
-                                          onClick={() => handleDeleteFile(doc.id, doc.document_id)}
-                                        >
-                                          <Trash2 className="h-4 w-4 text-red-500" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-sm text-gray-500">{t('orders.no_files') || 'No files attached'}</p>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </React.Fragment>
+                    <TableRow key={order.id} className={overdue ? 'bg-red-50' : ''}>
+                      <TableCell className="font-medium">{order.order_number}</TableCell>
+                      <TableCell>{new Date(order.ordered_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Badge className={statusColors[order.status] || statusColors.PENDING}>
+                          {t(`status.${order.status.toLowerCase()}`)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(order.amount)}
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(order.paid_amount)}
+                      </TableCell>
+                      <TableCell className={outstanding > 0 ? 'text-red-600 font-semibold' : 'text-green-600'}>
+                        {formatCurrency(outstanding)}
+                      </TableCell>
+                      <TableCell>
+                        {order.due_date ? (
+                          <span className={overdue ? 'text-red-600 font-semibold' : ''}>
+                            {new Date(order.due_date).toLocaleDateString()}
+                            {overdue && ` ${t('orders.overdue_tag')}`}
+                          </span>
+                        ) : (
+                          '-'
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleEditOrder(order)}
+                          title="Edit order"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
               </TableBody>
@@ -756,46 +562,6 @@ export function OrdersTab({ accountId }: OrdersTabProps) {
               {t('common.cancel')}
             </Button>
             <Button onClick={handleCreateOrder}>{t('orders.create_order')}</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Upload File Dialog */}
-      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t('orders.upload_file') || 'Upload File'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t('orders.file_category') || 'File Category'}</Label>
-              <Select value={fileCategory} onValueChange={(value) => setFileCategory(value as any)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="INVOICE">{t('orders.invoice') || 'Invoice'}</SelectItem>
-                  <SelectItem value="PROFORMA">{t('orders.proforma') || 'Proforma'}</SelectItem>
-                  <SelectItem value="DELIVERY_NOTE">{t('orders.delivery_note') || 'Delivery Note'}</SelectItem>
-                  <SelectItem value="OTHER">{t('orders.other') || 'Other'}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('common.file')}</Label>
-              <Input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => handleFileUpload(e.target.files?.[0])}
-                disabled={uploading}
-              />
-              <p className="text-xs text-gray-500">
-                {t('orders.accepted_formats') || 'Accepted formats: PDF, JPG, PNG'}
-              </p>
-            </div>
-            {uploading && (
-              <p className="text-sm text-blue-600">{t('common.uploading')}...</p>
-            )}
           </div>
         </DialogContent>
       </Dialog>

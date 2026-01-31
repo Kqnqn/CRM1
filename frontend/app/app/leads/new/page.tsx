@@ -65,7 +65,7 @@ export default function NewLeadPage() {
       <div className="mb-6">
         <Link
           href="/app/leads"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           {t('common.back')}

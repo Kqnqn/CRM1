@@ -225,46 +225,46 @@ export default function ServiceDetailPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <Label className="text-muted-foreground">{t('common.company')}</Label>
+                  <Label className="text-gray-500">{t('common.company')}</Label>
                   <Link href={`/app/accounts/${service.account_id}`} className="hover:text-blue-600">
                     <p className="font-medium mt-1">{service.account?.name}</p>
                   </Link>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">{t('common.status')}</Label>
+                  <Label className="text-gray-500">{t('common.status')}</Label>
                   <div className="mt-1">{getStatusBadge()}</div>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">{t('services.device_type')}</Label>
+                  <Label className="text-gray-500">{t('services.device_type')}</Label>
                   <p className="font-medium mt-1">{service.device_type}</p>
                 </div>
                 {service.device_serial && (
                   <div>
-                    <Label className="text-muted-foreground">{t('services.device_serial')}</Label>
+                    <Label className="text-gray-500">{t('services.device_serial')}</Label>
                     <p className="font-medium mt-1">{service.device_serial}</p>
                   </div>
                 )}
                 <div>
-                  <Label className="text-muted-foreground">{t('services.last_service_date')}</Label>
+                  <Label className="text-gray-500">{t('services.last_service_date')}</Label>
                   <p className="font-medium mt-1">
                     {format(parseISO(service.last_service_at), 'MMM d, yyyy h:mm a')}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">{t('services.table.next_service')}</Label>
+                  <Label className="text-gray-500">{t('services.table.next_service')}</Label>
                   <p className="font-medium mt-1">
                     {format(parseISO(service.next_service_due_at), 'MMM d, yyyy')}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">{t('services.interval_unit')}</Label>
+                  <Label className="text-gray-500">{t('services.interval_unit')}</Label>
                   <p className="font-medium mt-1">
                     {service.interval_value} {service.interval_unit === 'MONTHS' ? t('services.months') : t('services.years')}
                   </p>
                 </div>
                 {service.service_price && (
                   <div>
-                    <Label className="text-muted-foreground">{t('services.service_price')}</Label>
+                    <Label className="text-gray-500">{t('services.service_price')}</Label>
                     <p className="font-medium mt-1">
                       {service.service_price.toFixed(2)} {service.currency}
                     </p>
@@ -272,7 +272,7 @@ export default function ServiceDetailPage() {
                 )}
                 {service.assigned_to && (
                   <div>
-                    <Label className="text-muted-foreground">{t('activities.table.assigned_to')}</Label>
+                    <Label className="text-gray-500">{t('activities.table.assigned_to')}</Label>
                     <p className="font-medium mt-1">{service.assigned_to.full_name}</p>
                   </div>
                 )}
@@ -286,7 +286,7 @@ export default function ServiceDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label className="text-muted-foreground flex items-center">
+                <Label className="text-gray-500 flex items-center">
                   <MapPin className="h-4 w-4 mr-1" />
                   {t('services.location_address')}
                 </Label>
@@ -294,7 +294,7 @@ export default function ServiceDetailPage() {
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label className="text-muted-foreground flex items-center">
+                  <Label className="text-gray-500 flex items-center">
                     <User className="h-4 w-4 mr-1" />
                     {t('services.contact_name')}
                   </Label>
@@ -302,13 +302,13 @@ export default function ServiceDetailPage() {
                 </div>
                 {service.contact_phone && (
                   <div>
-                    <Label className="text-muted-foreground">{t('services.contact_phone')}</Label>
+                    <Label className="text-gray-500">{t('services.contact_phone')}</Label>
                     <p className="font-medium mt-1">{service.contact_phone}</p>
                   </div>
                 )}
                 {service.contact_email && (
                   <div>
-                    <Label className="text-muted-foreground">{t('services.contact_email')}</Label>
+                    <Label className="text-gray-500">{t('services.contact_email')}</Label>
                     <p className="font-medium mt-1">{service.contact_email}</p>
                   </div>
                 )}
@@ -322,7 +322,7 @@ export default function ServiceDetailPage() {
                 <CardTitle>{t('services.notes')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-foreground whitespace-pre-wrap">{service.notes}</p>
+                <p className="text-gray-700 whitespace-pre-wrap">{service.notes}</p>
               </CardContent>
             </Card>
           )}
@@ -336,7 +336,7 @@ export default function ServiceDetailPage() {
         <div className="space-y-4">
           {serviceLogs.length === 0 ? (
             <Card>
-              <CardContent className="p-8 text-center text-muted-foreground">
+              <CardContent className="p-8 text-center text-gray-500">
                 {t('services.history.empty')}
               </CardContent>
             </Card>
@@ -347,21 +347,21 @@ export default function ServiceDetailPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <Calendar className="h-4 w-4 text-gray-500" />
                         <span className="font-medium">
                           {format(parseISO(log.performed_at), 'MMM d, yyyy h:mm a')}
                         </span>
                         {log.performed_by && (
-                          <span className="text-sm text-muted-foreground">
+                          <span className="text-sm text-gray-600">
                             by {log.performed_by.full_name}
                           </span>
                         )}
                       </div>
                       {log.note && (
-                        <p className="text-foreground mt-2 ml-7">{log.note}</p>
+                        <p className="text-gray-700 mt-2 ml-7">{log.note}</p>
                       )}
                       {log.price_charged && (
-                        <div className="flex items-center mt-2 ml-7 text-sm text-muted-foreground">
+                        <div className="flex items-center mt-2 ml-7 text-sm text-gray-600">
                           <DollarSign className="h-3 w-3 mr-1" />
                           <span>{t('services.log.price_charged')}: {log.price_charged.toFixed(2)} {service.currency}</span>
                         </div>
@@ -380,8 +380,8 @@ export default function ServiceDetailPage() {
       label: t('common.documents'),
       content: (
         <Card>
-          <CardContent className="p-8 text-center text-muted-foreground">
-            <FileText className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+          <CardContent className="p-8 text-center text-gray-500">
+            <FileText className="h-12 w-12 mx-auto mb-3 text-gray-400" />
             <p>{t('services.documents.coming_soon')}</p>
           </CardContent>
         </Card>
@@ -398,10 +398,10 @@ export default function ServiceDetailPage() {
               ← {t('services.back_to_services')}
             </Link>
             <div className="flex items-center space-x-3">
-              <h1 className="text-2xl font-bold text-foreground">{service.device_type}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{service.device_type}</h1>
               {getStatusBadge()}
             </div>
-            <p className="text-muted-foreground mt-1">{t('services.create_service')} za {service.account?.name}</p>
+            <p className="text-gray-600 mt-1">{t('services.create_service')} za {service.account?.name}</p>
           </div>
         </div>
       </div>

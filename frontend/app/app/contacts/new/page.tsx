@@ -85,7 +85,7 @@ export default function NewContactPage() {
       <div className="mb-6">
         <Link
           href="/app/contacts"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           {t('common.back')}
@@ -129,26 +129,26 @@ export default function NewContactPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="first_name">
-                  {t('contacts.first_name')} <span className="text-red-500">*</span>
+                  {t('contacts.table.name')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="first_name"
                   value={formData.first_name}
                   onChange={(e) => updateFormData('first_name', e.target.value)}
-                  placeholder={t('contacts.first_name_placeholder')}
+                  placeholder="First name"
                   required
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="last_name">
-                  {t('contacts.last_name')} <span className="text-red-500">*</span>
+                  {t('contacts.table.name')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="last_name"
                   value={formData.last_name}
                   onChange={(e) => updateFormData('last_name', e.target.value)}
-                  placeholder={t('contacts.last_name_placeholder')}
+                  placeholder="Last name"
                   required
                 />
               </div>
@@ -189,7 +189,7 @@ export default function NewContactPage() {
                   id="title"
                   value={formData.title}
                   onChange={(e) => updateFormData('title', e.target.value)}
-                  placeholder={t('contacts.title_placeholder')}
+                  placeholder="e.g., Sales Manager"
                 />
               </div>
 
@@ -199,7 +199,7 @@ export default function NewContactPage() {
                   id="department"
                   value={formData.department}
                   onChange={(e) => updateFormData('department', e.target.value)}
-                  placeholder={t('contacts.department_placeholder')}
+                  placeholder="e.g., Sales, Marketing"
                 />
               </div>
             </div>
