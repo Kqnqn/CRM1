@@ -180,7 +180,7 @@ export default function ProfilePage() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading profile...</p>
+          <p className="text-muted-foreground">Loading profile...</p>
         </div>
       </div>
     );
@@ -190,13 +190,13 @@ export default function ProfilePage() {
     <div className="p-4 md:p-6">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
-          <p className="text-gray-600 mt-2">Manage your account settings and preferences</p>
+          <h1 className="text-3xl font-bold text-foreground">Profile Settings</h1>
+          <p className="text-muted-foreground mt-2">Manage your account settings and preferences</p>
         </div>
 
         <div className="space-y-6">
-        <Card className="shadow-sm border-gray-200">
-          <CardHeader className="border-b border-gray-100 bg-gray-50">
+        <Card className="shadow-sm border-border">
+          <CardHeader className="border-b border-border bg-muted">
             <CardTitle className="flex items-center text-lg">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
                 <User className="h-5 w-5 text-blue-600" />
@@ -207,7 +207,7 @@ export default function ProfilePage() {
           <CardContent className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-gray-700">Full Name</Label>
+                <Label className="text-sm font-semibold text-foreground">Full Name</Label>
                 <Input
                   value={profileData.full_name}
                   onChange={(e) =>
@@ -219,20 +219,20 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-gray-700">Email</Label>
+                <Label className="text-sm font-semibold text-foreground">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
                     value={profileData.email}
                     disabled
-                    className="h-11 pl-11 bg-gray-50"
+                    className="h-11 pl-11 bg-muted"
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-gray-700">Phone</Label>
+                <Label className="text-sm font-semibold text-foreground">Phone</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
@@ -247,7 +247,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-gray-700">Role</Label>
+                <Label className="text-sm font-semibold text-foreground">Role</Label>
                 <div className="h-11 flex items-center">
                   <Badge
                     className={`text-sm px-4 py-2 ${
@@ -257,7 +257,7 @@ export default function ProfilePage() {
                         ? 'bg-blue-100 text-blue-800 border-blue-200'
                         : profile.role === 'SALES_REP'
                         ? 'bg-green-100 text-green-800 border-green-200'
-                        : 'bg-gray-100 text-gray-800 border-gray-200'
+                        : 'bg-gray-100 text-gray-800 border-border'
                     }`}
                   >
                     {profile.role}
@@ -276,8 +276,8 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm border-gray-200">
-          <CardHeader className="border-b border-gray-100 bg-gray-50">
+        <Card className="shadow-sm border-border">
+          <CardHeader className="border-b border-border bg-muted">
             <CardTitle className="flex items-center text-lg">
               <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mr-3">
                 <Lock className="h-5 w-5 text-amber-600" />
@@ -302,7 +302,7 @@ export default function ProfilePage() {
             )}
 
             <div className="space-y-2">
-              <Label className="text-sm font-semibold text-gray-700">New Password</Label>
+              <Label className="text-sm font-semibold text-foreground">New Password</Label>
               <Input
                 type="password"
                 value={passwords.new}
@@ -310,11 +310,11 @@ export default function ProfilePage() {
                 placeholder="Enter new password"
                 className="h-11"
               />
-              <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
+              <p className="text-xs text-muted-foreground mt-1">Minimum 8 characters</p>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-semibold text-gray-700">Confirm New Password</Label>
+              <Label className="text-sm font-semibold text-foreground">Confirm New Password</Label>
               <Input
                 type="password"
                 value={passwords.confirm}
@@ -334,8 +334,8 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm border-gray-200">
-          <CardHeader className="border-b border-gray-100 bg-gray-50">
+        <Card className="shadow-sm border-border">
+          <CardHeader className="border-b border-border bg-muted">
             <CardTitle className="flex items-center text-lg">
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
                 <Calendar className="h-5 w-5 text-green-600" />
@@ -344,7 +344,7 @@ export default function ProfilePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
-            <div className="flex items-center justify-between p-5 border-2 border-gray-200 rounded-xl bg-white hover:border-gray-300 transition-colors">
+            <div className="flex items-center justify-between p-5 border-2 border-border rounded-xl bg-white hover:border-gray-300 transition-colors">
               <div className="flex items-center gap-4">
                 {profile.google_calendar_connected ? (
                   <>
@@ -352,8 +352,8 @@ export default function ProfilePage() {
                       <CheckCircle2 className="h-6 w-6 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">Connected</p>
-                      <p className="text-sm text-gray-600 mt-0.5">
+                      <p className="font-semibold text-foreground">Connected</p>
+                      <p className="text-sm text-muted-foreground mt-0.5">
                         Your Google Calendar is connected
                       </p>
                     </div>
@@ -364,8 +364,8 @@ export default function ProfilePage() {
                       <XCircle className="h-6 w-6 text-gray-400" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">Not Connected</p>
-                      <p className="text-sm text-gray-600 mt-0.5">
+                      <p className="font-semibold text-foreground">Not Connected</p>
+                      <p className="text-sm text-muted-foreground mt-0.5">
                         Connect your Google Calendar to sync tasks and events
                       </p>
                     </div>

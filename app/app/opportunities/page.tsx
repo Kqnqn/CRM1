@@ -119,8 +119,8 @@ export default function OpportunitiesPage() {
       <div className="flex flex-col gap-3 md:gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{t('opportunities.title')}</h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-1">{t('subtitle.manage_opportunities')}</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">{t('opportunities.title')}</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">{t('subtitle.manage_opportunities')}</p>
           </div>
           <Button
             onClick={() => router.push('/app/opportunities/new')}
@@ -157,45 +157,45 @@ export default function OpportunitiesPage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <Card className="bg-white shadow-sm border-gray-200">
+        <Card className="bg-card shadow-sm border-border">
           <CardContent className="p-3 sm:p-4 md:p-5">
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 line-clamp-1">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground line-clamp-1">
                   {t('opportunities.total_value')}
                 </p>
                 <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                   <LayoutGrid className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-blue-600" />
                 </div>
               </div>
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-foreground truncate">
                 {formatCurrency(totalValue)}
               </p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white shadow-sm border-gray-200">
+        <Card className="bg-card shadow-sm border-border">
           <CardContent className="p-3 sm:p-4 md:p-5">
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 line-clamp-1">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground line-clamp-1">
                   {t('opportunities.open_deals')}
                 </p>
                 <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Target className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-green-600" />
                 </div>
               </div>
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">{openCount}</p>
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">{openCount}</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white shadow-sm border-gray-200">
+        <Card className="bg-card shadow-sm border-border">
           <CardContent className="p-3 sm:p-4 md:p-5">
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 line-clamp-1">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground line-clamp-1">
                   {t('opportunities.won_deals')}
                 </p>
                 <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -207,11 +207,11 @@ export default function OpportunitiesPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white shadow-sm border-gray-200">
+        <Card className="bg-card shadow-sm border-border">
           <CardContent className="p-3 sm:p-4 md:p-5">
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 line-clamp-1">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground line-clamp-1">
                   {t('opportunities.lost_deals')}
                 </p>
                 <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-rose-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -249,7 +249,7 @@ export default function OpportunitiesPage() {
                         </Badge>
                       </div>
                       {stageValue > 0 && (
-                        <p className="text-xs font-medium text-gray-600 truncate">
+                        <p className="text-xs font-medium text-muted-foreground truncate">
                           {formatCurrency(stageValue)}
                         </p>
                       )}
@@ -260,20 +260,20 @@ export default function OpportunitiesPage() {
                           key={opp.id}
                           draggable
                           onDragStart={(e) => handleDragStart(e, opp.id)}
-                          className="cursor-move hover:shadow-lg active:shadow-xl transition-all touch-none bg-white border-gray-200"
+                          className="cursor-move hover:shadow-lg active:shadow-xl transition-all touch-none bg-card border-border"
                         >
                           <CardContent className="p-3 sm:p-4">
                             <Link
                               href={`/app/opportunities/${opp.id}`}
-                              className="font-semibold text-gray-900 hover:text-blue-600 active:text-blue-700 block mb-2 text-sm line-clamp-2"
+                              className="font-semibold text-foreground hover:text-blue-600 active:text-blue-700 block mb-2 text-sm line-clamp-2"
                             >
                               {opp.name}
                             </Link>
-                            <p className="text-xs text-gray-600 mb-2 sm:mb-3 line-clamp-1">
+                            <p className="text-xs text-muted-foreground mb-2 sm:mb-3 line-clamp-1">
                               {opp.account?.name}
                             </p>
                             <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                              <span className="text-sm sm:text-base font-bold text-gray-900 truncate">
+                              <span className="text-sm sm:text-base font-bold text-foreground truncate">
                                 {formatCurrency(opp.amount || 0)}
                               </span>
                               <Badge variant="outline" className="text-xs font-semibold flex-shrink-0 ml-2">
@@ -281,7 +281,7 @@ export default function OpportunitiesPage() {
                               </Badge>
                             </div>
                             {opp.close_date && (
-                              <p className="text-xs text-gray-500 mt-2 truncate">
+                              <p className="text-xs text-muted-foreground mt-2 truncate">
                                 {new Date(opp.close_date).toLocaleDateString()}
                               </p>
                             )}
@@ -290,7 +290,7 @@ export default function OpportunitiesPage() {
                       ))}
                       {stageOpps.length === 0 && (
                         <div className="text-center py-6 sm:py-8">
-                          <p className="text-xs sm:text-sm text-gray-400">
+                          <p className="text-xs sm:text-sm text-muted-foreground">
                             {t('opportunities.no_opportunities')}
                           </p>
                         </div>
@@ -302,7 +302,7 @@ export default function OpportunitiesPage() {
             })}
           </div>
           <div className="mt-2 text-center sm:hidden">
-            <p className="text-xs text-gray-500">Swipe left/right to see all stages</p>
+            <p className="text-xs text-muted-foreground">Swipe left/right to see all stages</p>
           </div>
         </div>
       ) : (
@@ -311,29 +311,29 @@ export default function OpportunitiesPage() {
             <div className="space-y-2 sm:space-y-3">
               {opportunities.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <LayoutGrid className="h-8 w-8 text-gray-400" />
+                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                    <LayoutGrid className="h-8 w-8 text-muted-foreground" />
                   </div>
-                  <p className="text-gray-500 text-sm">{t('opportunities.no_opportunities')}</p>
+                  <p className="text-muted-foreground text-sm">{t('opportunities.no_opportunities')}</p>
                 </div>
               ) : (
                 opportunities.map((opp) => (
                   <Link
                     key={opp.id}
                     href={`/app/opportunities/${opp.id}`}
-                    className="block p-3 sm:p-4 border rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                    className="block p-3 sm:p-4 border rounded-lg hover:bg-muted active:bg-muted transition-colors"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-blue-600 text-sm sm:text-base line-clamp-1">
                           {opp.name}
                         </h3>
-                        <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-1">
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-1">
                           {opp.account?.name}
                         </p>
                       </div>
                       <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2">
-                        <p className="font-bold text-sm sm:text-base text-gray-900">
+                        <p className="font-bold text-sm sm:text-base text-foreground">
                           {formatCurrency(opp.amount || 0)}
                         </p>
                         <Badge className="text-xs whitespace-nowrap">

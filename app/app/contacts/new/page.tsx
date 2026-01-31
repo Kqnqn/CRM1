@@ -85,7 +85,7 @@ export default function NewContactPage() {
       <div className="mb-6">
         <Link
           href="/app/contacts"
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           {t('common.back')}

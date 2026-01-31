@@ -273,8 +273,8 @@ export default function ServicesPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('services.title')}</h1>
-          <p className="text-gray-600 mt-1">{t('subtitle.manage_services') || 'Upravljajte vašim ugovorima o servisu'}</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('services.title')}</h1>
+          <p className="text-muted-foreground mt-1">{t('subtitle.manage_services') || 'Upravljajte vašim ugovorima o servisu'}</p>
         </div>
         <Dialog open={showDialog} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
@@ -574,7 +574,7 @@ function ServiceList({
   if (services.length === 0) {
     return (
       <Card>
-        <CardContent className="p-8 text-center text-gray-500">
+        <CardContent className="p-8 text-center text-muted-foreground">
           {t('services.no_services')}
         </CardContent>
       </Card>
@@ -590,28 +590,28 @@ function ServiceList({
               <div className="flex-1">
                 <div className="flex items-center space-x-3">
                   <Link href={`/app/services/${service.id}`}>
-                    <h3 className="font-medium text-gray-900 hover:text-blue-600 cursor-pointer">
+                    <h3 className="font-medium text-foreground hover:text-blue-600 cursor-pointer">
                       {service.device_type}
                     </h3>
                   </Link>
                   {getStatusBadge(service)}
                 </div>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {service.account?.name} - {service.location_address}
                 </p>
                 {service.device_serial && (
-                  <p className="text-xs text-gray-500 mt-1">{t('services.device_serial')}: {service.device_serial}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t('services.device_serial')}: {service.device_serial}</p>
                 )}
                 <div className="flex items-center space-x-4 mt-2 text-sm">
-                  <span className="text-gray-600">
+                  <span className="text-muted-foreground">
                     <Calendar className="h-3 w-3 inline mr-1" />
                     {t('services.table.next_service')}: {format(parseISO(service.next_service_due_at), 'MMM d, yyyy')}
                   </span>
-                  <span className="text-gray-500">
+                  <span className="text-muted-foreground">
                     {t('services.interval_unit')}: {service.interval_value} {service.interval_unit === 'MONTHS' ? t('services.months') : t('services.years')}
                   </span>
                   {service.assigned_to && (
-                    <span className="text-gray-500">
+                    <span className="text-muted-foreground">
                       {t('activities.table.assigned_to')}: {service.assigned_to.full_name}
                     </span>
                   )}

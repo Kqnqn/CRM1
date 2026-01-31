@@ -67,7 +67,7 @@ export default function ContactDetailPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label>{t('contacts.table.account')}</Label>
-                      <p className="text-gray-900">
+                      <p className="text-foreground">
                         {contact.account && (
                           <Link
                             href={`/app/accounts/${contact.account.id}`}
@@ -80,23 +80,23 @@ export default function ContactDetailPage() {
                     </div>
                     <div className="space-y-2">
                       <Label>{t('contacts.table.title')}</Label>
-                      <p className="text-gray-900">{contact.title || '-'}</p>
+                      <p className="text-foreground">{contact.title || '-'}</p>
                     </div>
                     <div className="space-y-2">
                       <Label>{t('common.email')}</Label>
-                      <p className="text-gray-900">{contact.email || '-'}</p>
+                      <p className="text-foreground">{contact.email || '-'}</p>
                     </div>
                     <div className="space-y-2">
                       <Label>{t('common.phone')}</Label>
-                      <p className="text-gray-900">{contact.phone || '-'}</p>
+                      <p className="text-foreground">{contact.phone || '-'}</p>
                     </div>
                     <div className="space-y-2">
                       <Label>Mobile</Label>
-                      <p className="text-gray-900">{contact.mobile || '-'}</p>
+                      <p className="text-foreground">{contact.mobile || '-'}</p>
                     </div>
                     <div className="space-y-2">
                       <Label>{t('common.industry')}</Label>
-                      <p className="text-gray-900">{contact.department || '-'}</p>
+                      <p className="text-foreground">{contact.department || '-'}</p>
                     </div>
                   </div>
                 </CardContent>

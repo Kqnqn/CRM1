@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import { NotificationsBell } from '@/components/shared/notifications-bell';
 import { LanguageProvider, useLanguage } from '@/lib/i18n/language-context';
+import { ThemeToggle } from '@/components/shared/theme-toggle';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -74,10 +75,10 @@ function InnerAppLayout({ children }: AppLayoutProps) {
 
   const NavContent = () => (
     <>
-      <div className="h-16 flex items-center px-6 border-b border-gray-200">
+      <div className="h-16 flex items-center px-6 border-b border-border">
         <Link href="/app" className="flex items-center space-x-2" onClick={() => setIsMobileOpen(false)}>
-          <Grid3x3 className="h-6 w-6 text-blue-600" />
-          <span className="text-xl font-semibold text-gray-900">CRM</span>
+          <Grid3x3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          <span className="text-xl font-semibold text-foreground">CRM</span>
         </Link>
       </div>
 
@@ -92,8 +93,8 @@ function InnerAppLayout({ children }: AppLayoutProps) {
               href={item.href}
               onClick={() => setIsMobileOpen(false)}
               className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-50'
+                  ? 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
+                  : 'text-foreground hover:bg-muted'
                 }`}
             >
               <item.icon className="h-5 w-5" />
@@ -104,11 +105,11 @@ function InnerAppLayout({ children }: AppLayoutProps) {
       </nav>
 
       {profile?.role === 'ADMIN' && (
-        <div className="px-3 py-4 border-t border-gray-200">
+        <div className="px-3 py-4 border-t border-border">
           <Link
             href="/app/admin/users"
             onClick={() => setIsMobileOpen(false)}
-            className="flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium text-foreground hover:bg-muted"
           >
             <Settings className="h-5 w-5" />
             <span>{t('nav.admin')}</span>
@@ -119,15 +120,15 @@ function InnerAppLayout({ children }: AppLayoutProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="flex h-screen">
         {/* Desktop Sidebar */}
-        <aside className="hidden md:flex w-60 bg-white border-r border-gray-200 flex-col">
+        <aside className="hidden md:flex w-60 bg-card border-r border-border flex-col">
           <NavContent />
         </aside>
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6">
+          <header className="h-16 bg-card border-b border-border flex items-center justify-between px-4 md:px-6">
             <div className="flex items-center flex-1 gap-4">
               {/* Mobile Menu Trigger */}
               <div className="md:hidden">
@@ -138,7 +139,7 @@ function InnerAppLayout({ children }: AppLayoutProps) {
                       <span className="sr-only">Toggle menu</span>
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="p-0 w-64 bg-white">
+                  <SheetContent side="left" className="p-0 w-64 bg-card">
                     <NavContent />
                   </SheetContent>
                 </Sheet>
@@ -146,7 +147,7 @@ function InnerAppLayout({ children }: AppLayoutProps) {
 
               <form onSubmit={handleSearch} className="flex-1 max-w-2xl">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
                     placeholder={t('common.search_placeholder')}
@@ -159,17 +160,19 @@ function InnerAppLayout({ children }: AppLayoutProps) {
             </div>
 
             <div className="flex items-center space-x-2 md:space-x-4 ml-4">
+              <ThemeToggle />
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-gray-600">
+                  <Button variant="ghost" size="icon">
                     <Globe className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setLanguage('bs')} className={language === 'bs' ? 'bg-blue-50' : ''}>
+                  <DropdownMenuItem onClick={() => setLanguage('bs')} className={language === 'bs' ? 'bg-blue-50 dark:bg-blue-950' : ''}>
                     🇧🇦 Bosnian
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLanguage('en')} className={language === 'en' ? 'bg-blue-50' : ''}>
+                  <DropdownMenuItem onClick={() => setLanguage('en')} className={language === 'en' ? 'bg-blue-50 dark:bg-blue-950' : ''}>
                     🇺🇸 English
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -179,18 +182,18 @@ function InnerAppLayout({ children }: AppLayoutProps) {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center space-x-2 p-1 md:p-2">
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                    <div className="w-8 h-8 bg-blue-600 dark:bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
                       {profile?.full_name?.charAt(0).toUpperCase() || 'U'}
                     </div>
-                    <span className="hidden md:inline text-sm font-medium">{profile?.full_name}</span>
+                    <span className="hidden md:inline text-sm font-medium text-foreground">{profile?.full_name}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium">{profile?.full_name}</p>
-                      <p className="text-xs text-gray-500">{profile?.email}</p>
-                      <p className="text-xs text-blue-600">{profile?.role}</p>
+                      <p className="text-sm font-medium text-foreground">{profile?.full_name}</p>
+                      <p className="text-xs text-muted-foreground">{profile?.email}</p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400">{profile?.role}</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />

@@ -89,8 +89,8 @@ export default function ContactsPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('contacts.title')}</h1>
-          <p className="text-gray-600 mt-1">{t('subtitle.manage_contacts')}</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('contacts.title')}</h1>
+          <p className="text-muted-foreground mt-1">{t('subtitle.manage_contacts')}</p>
         </div>
         <Button onClick={() => router.push('/app/contacts/new')}>
           <Plus className="h-4 w-4 mr-2" />
@@ -98,10 +98,10 @@ export default function ContactsPage() {
         </Button>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="p-4 border-b border-gray-200 space-y-4">
+      <div className="bg-card rounded-lg border border-border">
+        <div className="p-4 border-b border-border space-y-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={t('contacts.search_placeholder')}
               value={searchQuery}
@@ -143,7 +143,7 @@ export default function ContactsPage() {
         {loading ? (
           <div className="p-8 text-center">{t('dashboard.loading')}</div>
         ) : contacts.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-muted-foreground">
             {t('contacts.no_contacts')}
           </div>
         ) : (
@@ -161,7 +161,7 @@ export default function ContactsPage() {
             </TableHeader>
             <TableBody>
               {contacts.map((contact) => (
-                <TableRow key={contact.id} className="cursor-pointer hover:bg-gray-50">
+                <TableRow key={contact.id} className="cursor-pointer hover:bg-muted">
                   <TableCell>
                     <Link
                       href={`/app/contacts/${contact.id}`}

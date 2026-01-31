@@ -36,11 +36,11 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/lib/i18n/language-context';
 
 const statusColors: Record<string, string> = {
-  NEW: 'bg-blue-100 text-blue-800',
-  CONTACTED: 'bg-yellow-100 text-yellow-800',
-  QUALIFIED: 'bg-green-100 text-green-800',
-  CONVERTED: 'bg-purple-100 text-purple-800',
-  ARCHIVED: 'bg-gray-100 text-gray-800',
+  NEW: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-400',
+  CONTACTED: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-400',
+  QUALIFIED: 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-400',
+  CONVERTED: 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-400',
+  ARCHIVED: 'bg-muted text-foreground',
 };
 
 interface ImportResult {
@@ -162,8 +162,8 @@ export default function LeadsPage() {
     <div className="p-4 md:p-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('leads.title')}</h1>
-          <p className="text-gray-600 mt-1">{t('subtitle.manage_leads')}</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('leads.title')}</h1>
+          <p className="text-muted-foreground mt-1">{t('subtitle.manage_leads')}</p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
           <label htmlFor="csv-upload" className="flex-1 md:flex-none">
@@ -188,10 +188,10 @@ export default function LeadsPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="p-4 border-b border-gray-200 flex flex-col md:flex-row items-center gap-4">
+      <div className="bg-card rounded-lg border border-border">
+        <div className="p-4 border-b border-border flex flex-col md:flex-row items-center gap-4">
           <div className="flex-1 relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={t('leads.search_placeholder')}
               value={searchQuery}
@@ -217,7 +217,7 @@ export default function LeadsPage() {
         {loading ? (
           <div className="p-8 text-center">{t('dashboard.loading')}</div>
         ) : leads.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-muted-foreground">
             {t('leads.no_leads')}
           </div>
         ) : (
@@ -235,7 +235,7 @@ export default function LeadsPage() {
             </TableHeader>
             <TableBody>
               {leads.map((lead) => (
-                <TableRow key={lead.id} className="cursor-pointer hover:bg-gray-50">
+                <TableRow key={lead.id} className="cursor-pointer hover:bg-muted">
                   <TableCell>
                     <Link
                       href={`/app/leads/${lead.id}`}
@@ -272,17 +272,17 @@ export default function LeadsPage() {
           {importResult && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-700">
+                <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                  <div className="text-2xl font-bold text-green-700 dark:text-green-400">
                     {importResult.createdCount}
                   </div>
-                  <div className="text-sm text-green-600">{t('leads.created_count')}</div>
+                  <div className="text-sm text-green-600 dark:text-green-400">{t('leads.created_count')}</div>
                 </div>
-                <div className="p-4 bg-yellow-50 rounded-lg">
-                  <div className="text-2xl font-bold text-yellow-700">
+                <div className="p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
+                  <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-400">
                     {importResult.duplicateCount}
                   </div>
-                  <div className="text-sm text-yellow-600">{t('leads.duplicate_count')}</div>
+                  <div className="text-sm text-yellow-600 dark:text-yellow-400">{t('leads.duplicate_count')}</div>
                 </div>
               </div>
 
@@ -293,12 +293,12 @@ export default function LeadsPage() {
                     {importResult.errors.map((error, index) => (
                       <div
                         key={index}
-                        className="p-3 bg-red-50 rounded border border-red-200 text-sm"
+                        className="p-3 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-900 text-sm"
                       >
-                        <div className="font-medium text-red-900">
+                        <div className="font-medium text-red-900 dark:text-red-400">
                           {t('leads.row')} {error.row}: {error.error}
                         </div>
-                        <div className="text-red-700 mt-1">
+                        <div className="text-red-700 dark:text-red-400 mt-1">
                           Email: {error.data.email || 'N/A'}
                           {error.data.companyName && ` | Company: ${error.data.companyName}`}
                         </div>

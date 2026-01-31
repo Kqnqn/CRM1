@@ -192,8 +192,8 @@ export default function ReportsPage() {
     <div className="p-6">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('reports.title')} & {t('nav.home')}</h1>
-          <p className="text-gray-600 mt-1">{t('subtitle.sales_overview')}</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('reports.title')} & {t('nav.home')}</h1>
+          <p className="text-muted-foreground mt-1">{t('subtitle.sales_overview')}</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
@@ -269,10 +269,10 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">{t('reports.total_leads')}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">{stats.totalLeads}</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('reports.total_leads')}</p>
+                <p className="text-2xl font-bold text-foreground mt-2">{stats.totalLeads}</p>
               </div>
-              <div className="bg-blue-50 p-3 rounded-lg">
+              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
                 <Users className="h-6 w-6 text-blue-600" />
               </div>
             </div>
@@ -283,10 +283,10 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">{t('reports.total_accounts')}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">{stats.totalAccounts}</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('reports.total_accounts')}</p>
+                <p className="text-2xl font-bold text-foreground mt-2">{stats.totalAccounts}</p>
               </div>
-              <div className="bg-green-50 p-3 rounded-lg">
+              <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg">
                 <Building2 className="h-6 w-6 text-green-600" />
               </div>
             </div>
@@ -297,14 +297,14 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">{t('reports.open_opportunities')}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
+                <p className="text-sm font-medium text-muted-foreground">{t('reports.open_opportunities')}</p>
+                <p className="text-2xl font-bold text-foreground mt-2">
                   {stats.totalOpportunities -
                     (stats.opportunitiesByStage['CLOSED_WON'] || 0) -
                     (stats.opportunitiesByStage['CLOSED_LOST'] || 0)}
                 </p>
               </div>
-              <div className="bg-purple-50 p-3 rounded-lg">
+              <div className="bg-purple-50 dark:bg-purple-950 p-3 rounded-lg">
                 <Target className="h-6 w-6 text-purple-600" />
               </div>
             </div>
@@ -315,12 +315,12 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">{t('reports.pipeline_value')}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
+                <p className="text-sm font-medium text-muted-foreground">{t('reports.pipeline_value')}</p>
+                <p className="text-2xl font-bold text-foreground mt-2">
                   {formatCurrency(stats.pipelineValue)}
                 </p>
               </div>
-              <div className="bg-orange-50 p-3 rounded-lg">
+              <div className="bg-orange-50 dark:bg-orange-950 p-3 rounded-lg">
                 <DollarSign className="h-6 w-6 text-orange-600" />
               </div>
             </div>
@@ -337,12 +337,12 @@ export default function ReportsPage() {
             <div className="space-y-3">
               {Object.entries(stats.leadsByStatus).map(([status, count]) => (
                 <div key={status} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">{t(`status.${status.toLowerCase()}`)}</span>
-                  <span className="text-lg font-semibold text-gray-900">{count}</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t(`status.${status.toLowerCase()}`)}</span>
+                  <span className="text-lg font-semibold text-foreground">{count}</span>
                 </div>
               ))}
               {Object.keys(stats.leadsByStatus).length === 0 && (
-                <p className="text-center text-gray-500 py-4">{t('reports.no_leads_data')}</p>
+                <p className="text-center text-muted-foreground py-4">{t('reports.no_leads_data')}</p>
               )}
             </div>
           </CardContent>
@@ -356,12 +356,12 @@ export default function ReportsPage() {
             <div className="space-y-3">
               {Object.entries(stats.accountsByStage).map(([stage, count]) => (
                 <div key={stage} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">{t(`status.${stage.toLowerCase()}`)}</span>
-                  <span className="text-lg font-semibold text-gray-900">{count}</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t(`status.${stage.toLowerCase()}`)}</span>
+                  <span className="text-lg font-semibold text-foreground">{count}</span>
                 </div>
               ))}
               {Object.keys(stats.accountsByStage).length === 0 && (
-                <p className="text-center text-gray-500 py-4">{t('reports.no_accounts_data')}</p>
+                <p className="text-center text-muted-foreground py-4">{t('reports.no_accounts_data')}</p>
               )}
             </div>
           </CardContent>
@@ -375,12 +375,12 @@ export default function ReportsPage() {
             <div className="space-y-3">
               {Object.entries(stats.opportunitiesByStage).map(([stage, count]) => (
                 <div key={stage} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">{t(`stage.${stage.toLowerCase()}`)}</span>
-                  <span className="text-lg font-semibold text-gray-900">{count}</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t(`stage.${stage.toLowerCase()}`)}</span>
+                  <span className="text-lg font-semibold text-foreground">{count}</span>
                 </div>
               ))}
               {Object.keys(stats.opportunitiesByStage).length === 0 && (
-                <p className="text-center text-gray-500 py-4">{t('reports.no_opportunities_data')}</p>
+                <p className="text-center text-muted-foreground py-4">{t('reports.no_opportunities_data')}</p>
               )}
             </div>
           </CardContent>
@@ -393,19 +393,19 @@ export default function ReportsPage() {
           <CardContent>
             <div className="space-y-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">{t('reports.won_revenue')}</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('reports.won_revenue')}</p>
                 <p className="text-2xl font-bold text-green-600 mt-1">
                   {formatCurrency(stats.wonRevenue)}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">{t('reports.lost_revenue')}</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('reports.lost_revenue')}</p>
                 <p className="text-2xl font-bold text-red-600 mt-1">
                   {formatCurrency(stats.lostRevenue)}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">{t('reports.win_rate')}</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('reports.win_rate')}</p>
                 <p className="text-2xl font-bold text-blue-600 mt-1">
                   {stats.totalRevenue > 0
                     ? `${((stats.wonRevenue / stats.totalRevenue) * 100).toFixed(1)}%`

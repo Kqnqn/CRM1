@@ -306,21 +306,21 @@ export default function HomePage() {
   return (
     <div className="p-4 md:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold text-foreground">
           {t('dashboard.welcome', { name: profile?.full_name || '' })}
         </h1>
-        <p className="text-gray-600 mt-1">{t('dashboard.subtitle')}</p>
+        <p className="text-muted-foreground mt-1">{t('dashboard.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Link href="/app/leads">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">{t('dashboard.total_leads')}</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.total_leads')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-gray-900">{stats.totalLeads}</div>
+                <div className="text-3xl font-bold text-foreground">{stats.totalLeads}</div>
                 <Users className="h-8 w-8 text-blue-600" />
               </div>
             </CardContent>
@@ -330,13 +330,13 @@ export default function HomePage() {
         <Link href="/app/accounts">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 {t('dashboard.total_accounts')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-gray-900">{stats.totalAccounts}</div>
+                <div className="text-3xl font-bold text-foreground">{stats.totalAccounts}</div>
                 <Building2 className="h-8 w-8 text-green-600" />
               </div>
             </CardContent>
@@ -346,13 +346,13 @@ export default function HomePage() {
         <Link href="/app/opportunities">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 {t('dashboard.open_opportunities')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-gray-900">
+                <div className="text-3xl font-bold text-foreground">
                   {stats.totalOpportunities}
                 </div>
                 <Target className="h-8 w-8 text-orange-600" />
@@ -363,11 +363,11 @@ export default function HomePage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">{t('dashboard.win_rate')}</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.win_rate')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-3xl font-bold text-gray-900">
+              <div className="text-3xl font-bold text-foreground">
                 {stats.winRate.toFixed(0)}%
               </div>
               <TrendingUp className="h-8 w-8 text-purple-600" />
@@ -384,7 +384,7 @@ export default function HomePage() {
           </CardHeader>
           <CardContent>
             {stats.leadsByStatus.length === 0 ? (
-              <p className="text-center py-4 text-gray-500">{t('dashboard.no_leads')}</p>
+              <p className="text-center py-4 text-muted-foreground">{t('dashboard.no_leads')}</p>
             ) : (
               <div className="space-y-3">
                 {stats.leadsByStatus.map((item) => (
@@ -393,10 +393,10 @@ export default function HomePage() {
                       <Badge
                         className={
                           item.status === 'CONVERTED'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-400'
                             : item.status === 'QUALIFIED'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-gray-100 text-gray-800'
+                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-400'
+                              : 'bg-muted text-foreground'
                         }
                       >
                         {item.status}
@@ -417,7 +417,7 @@ export default function HomePage() {
           </CardHeader>
           <CardContent>
             {stats.opportunitiesByStage.length === 0 ? (
-              <p className="text-center py-4 text-gray-500">{t('dashboard.no_opportunities')}</p>
+              <p className="text-center py-4 text-muted-foreground">{t('dashboard.no_opportunities')}</p>
             ) : (
               <div className="space-y-3">
                 {stats.opportunitiesByStage.map((item) => (
@@ -426,15 +426,15 @@ export default function HomePage() {
                       <Badge
                         className={
                           item.stage === 'CLOSED_WON'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-400'
                             : item.stage === 'CLOSED_LOST'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-blue-100 text-blue-800'
+                              ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-400'
+                              : 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-400'
                         }
                       >
                         {item.stage}
                       </Badge>
-                      <span className="text-sm text-gray-600">({item.count})</span>
+                      <span className="text-sm text-muted-foreground">({item.count})</span>
                     </div>
                     <div className="text-lg font-semibold">
                       {formatCurrency(item.total_amount)}
@@ -449,7 +449,7 @@ export default function HomePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <Card>
-          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => router.push('/app/activities')}>
+          <CardHeader className="cursor-pointer hover:bg-muted transition-colors" onClick={() => router.push('/app/activities')}>
             <CardTitle className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-blue-600" />
               {t('dashboard.my_open_tasks')}
@@ -458,17 +458,17 @@ export default function HomePage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-center py-4 text-gray-500">{t('dashboard.loading')}</p>
+              <p className="text-center py-4 text-muted-foreground">{t('dashboard.loading')}</p>
             ) : openTasks.length === 0 ? (
-              <p className="text-center py-4 text-gray-500">{t('empty.no_open_tasks')}</p>
+              <p className="text-center py-4 text-muted-foreground">{t('empty.no_open_tasks')}</p>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {openTasks.map((task) => (
-                  <div key={task.id} className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                  <div key={task.id} className="p-3 border border-border rounded-lg hover:bg-muted">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{task.subject}</p>
-                        <p className="text-xs text-gray-600 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {task.type} • {t('dashboard.due')} {new Date(task.due_date).toLocaleDateString()}
                         </p>
                       </div>
@@ -488,26 +488,26 @@ export default function HomePage() {
         </Card>
 
         <Card>
-          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => router.push('/app/activities')}>
+          <CardHeader className="cursor-pointer hover:bg-muted transition-colors" onClick={() => router.push('/app/activities')}>
             <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-red-600" />
+              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
               {t('dashboard.overdue_tasks')}
             </CardTitle>
             <CardDescription>{t('dashboard.overdue_tasks_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-center py-4 text-gray-500">{t('dashboard.loading')}</p>
+              <p className="text-center py-4 text-muted-foreground">{t('dashboard.loading')}</p>
             ) : overdueTasks.length === 0 ? (
-              <p className="text-center py-4 text-gray-500">{t('empty.no_overdue_tasks')}</p>
+              <p className="text-center py-4 text-muted-foreground">{t('empty.no_overdue_tasks')}</p>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {overdueTasks.map((task) => (
-                  <div key={task.id} className="p-3 border border-red-200 bg-red-50 rounded-lg">
+                  <div key={task.id} className="p-3 border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950 rounded-lg">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate text-red-900">{task.subject}</p>
-                        <p className="text-xs text-red-600 mt-1">
+                        <p className="font-medium truncate text-red-900 dark:text-red-400">{task.subject}</p>
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-1">
                           {task.type} • {t('dashboard.overdue_since')} {new Date(task.due_date).toLocaleDateString()}
                         </p>
                       </div>
@@ -529,33 +529,33 @@ export default function HomePage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-orange-600" />
+              <DollarSign className="h-5 w-5 text-orange-600 dark:text-orange-400" />
               {t('dashboard.unpaid_invoices')}
             </CardTitle>
             <CardDescription>{t('dashboard.unpaid_invoices_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-center py-4 text-gray-500">{t('dashboard.loading')}</p>
+              <p className="text-center py-4 text-muted-foreground">{t('dashboard.loading')}</p>
             ) : unpaidAccounts.length === 0 ? (
-              <p className="text-center py-4 text-gray-500">{t('empty.all_invoices_paid')}</p>
+              <p className="text-center py-4 text-muted-foreground">{t('empty.all_invoices_paid')}</p>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {unpaidAccounts.map((account) => (
                   <div
                     key={account.id}
-                    className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                    className="p-3 border border-border rounded-lg hover:bg-muted cursor-pointer"
                     onClick={() => router.push(`/app/accounts/${account.id}?tab=orders`)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{account.name}</p>
-                        <p className="text-xs text-gray-600 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {account.invoice_count} {account.invoice_count === 1 ? t('dashboard.unpaid_invoice') : t('dashboard.unpaid_invoices')}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-red-600">
+                        <p className="font-bold text-red-600 dark:text-red-400">
                           {formatCurrency(account.total_outstanding)}
                         </p>
                       </div>
@@ -568,33 +568,33 @@ export default function HomePage() {
         </Card>
 
         <Card>
-          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => router.push('/app/services?tab=due-soon')}>
+          <CardHeader className="cursor-pointer hover:bg-muted transition-colors" onClick={() => router.push('/app/services?tab=due-soon')}>
             <CardTitle className="flex items-center gap-2">
-              <Wrench className="h-5 w-5 text-orange-600" />
+              <Wrench className="h-5 w-5 text-orange-600 dark:text-orange-400" />
               {t('dashboard.services_due_soon')}
             </CardTitle>
             <CardDescription>{t('dashboard.services_due_soon_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-center py-4 text-gray-500">{t('dashboard.loading')}</p>
+              <p className="text-center py-4 text-muted-foreground">{t('dashboard.loading')}</p>
             ) : servicesDueSoon.length === 0 ? (
-              <p className="text-center py-4 text-gray-500">{t('empty.no_services_due')}</p>
+              <p className="text-center py-4 text-muted-foreground">{t('empty.no_services_due')}</p>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {servicesDueSoon.map((service) => (
                   <div
                     key={service.id}
-                    className="p-3 border border-orange-200 bg-orange-50 rounded-lg hover:bg-orange-100 cursor-pointer"
+                    className="p-3 border border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-950 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900 cursor-pointer"
                     onClick={() => router.push(`/app/services/${service.id}`)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate text-orange-900">{service.device_type}</p>
-                        <p className="text-xs text-orange-600 mt-1">{service.account_name}</p>
+                        <p className="font-medium truncate text-orange-900 dark:text-orange-400">{service.device_type}</p>
+                        <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">{service.account_name}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs font-medium text-orange-700">
+                        <p className="text-xs font-medium text-orange-700 dark:text-orange-300">
                           {new Date(service.next_service_due_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -607,33 +607,33 @@ export default function HomePage() {
         </Card>
 
         <Card>
-          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => router.push('/app/services?tab=overdue')}>
+          <CardHeader className="cursor-pointer hover:bg-muted transition-colors" onClick={() => router.push('/app/services?tab=overdue')}>
             <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-red-600" />
+              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
               {t('dashboard.overdue_services')}
             </CardTitle>
             <CardDescription>{t('dashboard.overdue_services_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-center py-4 text-gray-500">{t('dashboard.loading')}</p>
+              <p className="text-center py-4 text-muted-foreground">{t('dashboard.loading')}</p>
             ) : servicesOverdue.length === 0 ? (
-              <p className="text-center py-4 text-gray-500">{t('empty.no_overdue_services')}</p>
+              <p className="text-center py-4 text-muted-foreground">{t('empty.no_overdue_services')}</p>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {servicesOverdue.map((service) => (
                   <div
                     key={service.id}
-                    className="p-3 border border-red-200 bg-red-50 rounded-lg hover:bg-red-100 cursor-pointer"
+                    className="p-3 border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950 rounded-lg hover:bg-red-100 dark:hover:bg-red-900 cursor-pointer"
                     onClick={() => router.push(`/app/services/${service.id}`)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate text-red-900">{service.device_type}</p>
-                        <p className="text-xs text-red-600 mt-1">{service.account_name}</p>
+                        <p className="font-medium truncate text-red-900 dark:text-red-400">{service.device_type}</p>
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-1">{service.account_name}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs font-medium text-red-700">
+                        <p className="text-xs font-medium text-red-700 dark:text-red-300">
                           {new Date(service.next_service_due_at).toLocaleDateString()}
                         </p>
                       </div>

@@ -257,8 +257,8 @@ export default function ActivitiesPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('activities.title')}</h1>
-          <p className="text-gray-600 mt-1">{t('subtitle.manage_activities')}</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('activities.title')}</h1>
+          <p className="text-muted-foreground mt-1">{t('subtitle.manage_activities')}</p>
         </div>
         <Dialog open={showDialog} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
@@ -288,7 +288,7 @@ export default function ActivitiesPage() {
                   </SelectContent>
                 </Select>
                 {editingActivity && (
-                  <p className="text-xs text-gray-500">{t('activities.type_change_warning')}</p>
+                  <p className="text-xs text-muted-foreground">{t('activities.type_change_warning')}</p>
                 )}
               </div>
 
@@ -489,7 +489,7 @@ export default function ActivitiesPage() {
           <div className="space-y-3">
             {tasks.length === 0 ? (
               <Card>
-                <CardContent className="p-8 text-center text-gray-500">
+                <CardContent className="p-8 text-center text-muted-foreground">
                   {t('activities.no_activities')}
                 </CardContent>
               </Card>
@@ -499,9 +499,9 @@ export default function ActivitiesPage() {
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">{task.subject}</h3>
+                        <h3 className="font-medium text-foreground">{task.subject}</h3>
                         {task.description && (
-                          <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
                         )}
                         {getRelatedEntityName(task) && (
                           <p className="text-xs text-blue-600 mt-1">
@@ -512,7 +512,7 @@ export default function ActivitiesPage() {
                           <Badge variant="outline">{t('status.' + task.status?.toLowerCase())}</Badge>
                           <Badge variant="secondary">{t('priority.' + task.priority?.toLowerCase())}</Badge>
                           {task.due_date && (
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-muted-foreground">
                               {t('dashboard.due')}: {format(new Date(task.due_date), 'MMM d, yyyy h:mm a')}
                             </span>
                           )}
@@ -558,7 +558,7 @@ export default function ActivitiesPage() {
           <div className="space-y-3">
             {events.length === 0 ? (
               <Card>
-                <CardContent className="p-8 text-center text-gray-500">
+                <CardContent className="p-8 text-center text-muted-foreground">
                   {t('activities.no_activities')}
                 </CardContent>
               </Card>
@@ -568,16 +568,16 @@ export default function ActivitiesPage() {
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">{event.subject}</h3>
+                        <h3 className="font-medium text-foreground">{event.subject}</h3>
                         {event.description && (
-                          <p className="text-sm text-gray-600 mt-1">{event.description}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
                         )}
                         {getRelatedEntityName(event) && (
                           <p className="text-xs text-blue-600 mt-1">
                             {getRelatedEntityName(event)}
                           </p>
                         )}
-                        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                        <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
                           {event.start_time && (
                             <span>{t('activities.table.start_time')}: {format(new Date(event.start_time), 'MMM d, yyyy h:mm a')}</span>
                           )}

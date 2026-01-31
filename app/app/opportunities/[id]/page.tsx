@@ -100,7 +100,7 @@ export default function OpportunityDetailPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label>{t('opportunities.table.account')}</Label>
-                      <p className="text-gray-900">
+                      <p className="text-foreground">
                         {opportunity.account && (
                           <Link
                             href={`/app/accounts/${opportunity.account.id}`}
@@ -113,7 +113,7 @@ export default function OpportunityDetailPage() {
                     </div>
                     <div className="space-y-2">
                       <Label>{t('nav.contacts')}</Label>
-                      <p className="text-gray-900">
+                      <p className="text-foreground">
                         {opportunity.contact ? (
                           <Link
                             href={`/app/contacts/${opportunity.contact.id}`}
@@ -134,25 +134,25 @@ export default function OpportunityDetailPage() {
                     </div>
                     <div className="space-y-2">
                       <Label>{t('opportunities.table.amount')}</Label>
-                      <p className="text-gray-900">{formatCurrency(opportunity.amount || 0)}</p>
+                      <p className="text-foreground">{formatCurrency(opportunity.amount || 0)}</p>
                     </div>
                     <div className="space-y-2">
                       <Label>{t('opportunities.table.probability')}</Label>
-                      <p className="text-gray-900">{opportunity.probability}%</p>
+                      <p className="text-foreground">{opportunity.probability}%</p>
                     </div>
                     <div className="space-y-2">
                       <Label>{t('opportunities.table.close_date')}</Label>
-                      <p className="text-gray-900">
+                      <p className="text-foreground">
                         {opportunity.close_date ? new Date(opportunity.close_date).toLocaleDateString() : '-'}
                       </p>
                     </div>
                     <div className="space-y-2 md:col-span-2">
                       <Label>{t('common.description')}</Label>
-                      <p className="text-gray-900">{opportunity.description || '-'}</p>
+                      <p className="text-foreground">{opportunity.description || '-'}</p>
                     </div>
                     <div className="space-y-2">
                       <Label>{t('opportunities.table.owner')}</Label>
-                      <p className="text-gray-900">{opportunity.owner?.full_name}</p>
+                      <p className="text-foreground">{opportunity.owner?.full_name}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -169,12 +169,12 @@ export default function OpportunityDetailPage() {
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-medium">{t('opportunities.related_orders') || 'Related Orders'}</h3>
                       <div className="text-right">
-                        <p className="text-sm text-gray-600">{t('opportunities.total_orders_amount') || 'Total Orders Amount'}</p>
+                        <p className="text-sm text-muted-foreground">{t('opportunities.total_orders_amount') || 'Total Orders Amount'}</p>
                         <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalOrdersAmount)}</p>
                       </div>
                     </div>
                     {accountOrders.length === 0 ? (
-                      <p className="text-gray-500 text-center py-4">{t('orders.no_orders')}</p>
+                      <p className="text-muted-foreground text-center py-4">{t('orders.no_orders')}</p>
                     ) : (
                       <Table>
                         <TableHeader>

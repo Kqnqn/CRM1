@@ -230,15 +230,15 @@ export default function UsersManagementPage() {
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
       case 'ADMIN':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-400';
       case 'MANAGER':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-400';
       case 'SALES_REP':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-400';
       case 'READ_ONLY':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-foreground';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-foreground';
     }
   };
 
@@ -250,8 +250,8 @@ export default function UsersManagementPage() {
     <div className="p-6">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600 mt-1">Manage system users and permissions</p>
+          <h1 className="text-2xl font-bold text-foreground">User Management</h1>
+          <p className="text-muted-foreground mt-1">Manage system users and permissions</p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)}>
           <UserPlus className="h-4 w-4 mr-2" />
@@ -383,7 +383,7 @@ export default function UsersManagementPage() {
                 onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                 placeholder="Auto-generate secure password"
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 User will be required to change password on first login
               </p>
             </div>
@@ -404,7 +404,7 @@ export default function UsersManagementPage() {
             <DialogTitle>Reset Password</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Reset password for {selectedUser?.full_name} ({selectedUser?.email})
             </p>
 
