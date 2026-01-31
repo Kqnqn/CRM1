@@ -373,12 +373,12 @@ export default function ReportsPage() {
             <div className="space-y-3">
               {Object.entries(stats.opportunitiesByStage).map(([stage, count]) => (
                 <div key={stage} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">{t(`stage.${stage.toLowerCase()}`)}</span>
-                  <span className="text-lg font-semibold text-gray-900">{count}</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t(`stage.${stage.toLowerCase()}`)}</span>
+                  <span className="text-lg font-semibold text-foreground">{count}</span>
                 </div>
               ))}
               {Object.keys(stats.opportunitiesByStage).length === 0 && (
-                <p className="text-center text-gray-500 py-4">{t('reports.no_opportunities_data')}</p>
+                <p className="text-center text-muted-foreground py-4">{t('reports.no_opportunities_data')}</p>
               )}
             </div>
           </CardContent>
@@ -391,13 +391,13 @@ export default function ReportsPage() {
           <CardContent>
             <div className="space-y-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">{t('reports.won_revenue')}</p>
-                <p className="text-2xl font-bold text-green-600 mt-1">
+                <p className="text-sm font-medium text-muted-foreground">{t('reports.won_revenue')}</p>
+                <p className="text-2xl font-bold text-green-500 mt-1">
                   {formatCurrency(stats.wonRevenue)}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">{t('reports.lost_revenue')}</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('reports.lost_revenue')}</p>
                 <p className="text-2xl font-bold text-red-600 mt-1">
                   {formatCurrency(stats.lostRevenue)}
                 </p>
