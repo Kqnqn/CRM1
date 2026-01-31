@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, List, LayoutGrid } from 'lucide-react';
+import { Plus, List, LayoutGrid, Target, CheckCircle2, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { canViewAll } from '@/lib/auth/permissions';
@@ -22,12 +22,21 @@ const stages = [
 ];
 
 const stageColors: Record<string, string> = {
-  PROSPECTING: 'bg-gray-200',
-  QUALIFIED: 'bg-blue-200',
-  PROPOSAL: 'bg-yellow-200',
-  NEGOTIATION: 'bg-orange-200',
-  CLOSED_WON: 'bg-green-200',
-  CLOSED_LOST: 'bg-red-200',
+  PROSPECTING: 'bg-slate-100 border-slate-300',
+  QUALIFIED: 'bg-sky-50 border-sky-300',
+  PROPOSAL: 'bg-amber-50 border-amber-300',
+  NEGOTIATION: 'bg-orange-50 border-orange-300',
+  CLOSED_WON: 'bg-emerald-50 border-emerald-300',
+  CLOSED_LOST: 'bg-rose-50 border-rose-300',
+};
+
+const stageTextColors: Record<string, string> = {
+  PROSPECTING: 'text-slate-700',
+  QUALIFIED: 'text-sky-700',
+  PROPOSAL: 'text-amber-700',
+  NEGOTIATION: 'text-orange-700',
+  CLOSED_WON: 'text-emerald-700',
+  CLOSED_LOST: 'text-rose-700',
 };
 
 export default function OpportunitiesPage() {
@@ -97,9 +106,14 @@ export default function OpportunitiesPage() {
     return <div className="p-6">{t('dashboard.loading')}</div>;
   }
 
+  const totalValue = opportunities.reduce((sum, opp) => sum + (parseFloat(opp.amount?.toString() || '0')), 0);
+  const wonCount = opportunities.filter(opp => opp.stage === 'CLOSED_WON').length;
+  const lostCount = opportunities.filter(opp => opp.stage === 'CLOSED_LOST').length;
+  const openCount = opportunities.length - wonCount - lostCount;
+
   return (
-    <div className="p-4 md:p-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div className="p-4 md:p-6 space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('opportunities.title')}</h1>
           <p className="text-gray-600 mt-1">{t('subtitle.manage_opportunities')}</p>
@@ -130,62 +144,141 @@ export default function OpportunitiesPage() {
         </div>
       </div>
 
-      {view === 'kanban' ? (
-        <div className="flex space-x-4 overflow-x-auto pb-4">
-          {stages.map((stage) => (
-            <div
-              key={stage}
-              className="flex-shrink-0 w-80"
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, stage)}
-            >
-              <Card className={`${stageColors[stage]} border-2`}>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium">
-                    {t(`stage.${stage.toLowerCase()}`)} ({getOpportunitiesByStage(stage).length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {getOpportunitiesByStage(stage).map((opp) => (
-                    <Card
-                      key={opp.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, opp.id)}
-                      className="cursor-move hover:shadow-md transition-shadow"
-                    >
-                      <CardContent className="p-4">
-                        <Link
-                          href={`/app/opportunities/${opp.id}`}
-                          className="font-medium text-blue-600 hover:underline block"
-                        >
-                          {opp.name}
-                        </Link>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {opp.account?.name}
-                        </p>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-lg font-semibold text-gray-900">
-                            {formatCurrency(opp.amount || 0)}
-                          </span>
-                          <Badge variant="outline">{opp.probability}%</Badge>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-2">
-                          {opp.close_date
-                            ? `${t('common.date')}: ${new Date(opp.close_date).toLocaleDateString()}`
-                            : t('opportunities.no_close_date')}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  {getOpportunitiesByStage(stage).length === 0 && (
-                    <p className="text-center text-gray-500 py-4 text-sm">
-                      {t('opportunities.no_opportunities')}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">{t('opportunities.total_value')}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {formatCurrency(totalValue)}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <LayoutGrid className="h-6 w-6 text-blue-600" />
+              </div>
             </div>
-          ))}
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">{t('opportunities.open_deals')}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{openCount}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <Target className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">{t('opportunities.won_deals')}</p>
+                <p className="text-2xl font-bold text-emerald-600 mt-1">{wonCount}</p>
+              </div>
+              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">{t('opportunities.lost_deals')}</p>
+                <p className="text-2xl font-bold text-rose-600 mt-1">{lostCount}</p>
+              </div>
+              <div className="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center">
+                <XCircle className="h-6 w-6 text-rose-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {view === 'kanban' ? (
+        <div className="flex gap-4 overflow-x-auto pb-4 px-1">
+          {stages.map((stage) => {
+            const stageOpps = getOpportunitiesByStage(stage);
+            const stageValue = stageOpps.reduce((sum, opp) => sum + (parseFloat(opp.amount?.toString() || '0')), 0);
+
+            return (
+              <div
+                key={stage}
+                className="flex-shrink-0 w-[320px]"
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, stage)}
+              >
+                <Card className={`${stageColors[stage]} border-2 h-full`}>
+                  <CardHeader className="pb-3 px-4 pt-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <CardTitle className={`text-sm font-semibold uppercase tracking-wide ${stageTextColors[stage]}`}>
+                        {t(`stage.${stage.toLowerCase()}`)}
+                      </CardTitle>
+                      <Badge variant="secondary" className="font-semibold">
+                        {stageOpps.length}
+                      </Badge>
+                    </div>
+                    {stageValue > 0 && (
+                      <p className="text-xs font-medium text-gray-600">
+                        {formatCurrency(stageValue)}
+                      </p>
+                    )}
+                  </CardHeader>
+                  <CardContent className="space-y-3 px-4 pb-4 min-h-[200px]">
+                    {stageOpps.map((opp) => (
+                      <Card
+                        key={opp.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, opp.id)}
+                        className="cursor-move hover:shadow-lg transition-all hover:scale-[1.02] bg-white border-gray-200"
+                      >
+                        <CardContent className="p-4">
+                          <Link
+                            href={`/app/opportunities/${opp.id}`}
+                            className="font-semibold text-gray-900 hover:text-blue-600 block mb-2 text-sm"
+                          >
+                            {opp.name}
+                          </Link>
+                          <p className="text-xs text-gray-600 mb-3">
+                            {opp.account?.name}
+                          </p>
+                          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                            <span className="text-base font-bold text-gray-900">
+                              {formatCurrency(opp.amount || 0)}
+                            </span>
+                            <Badge variant="outline" className="text-xs font-semibold">
+                              {opp.probability}%
+                            </Badge>
+                          </div>
+                          {opp.close_date && (
+                            <p className="text-xs text-gray-500 mt-2">
+                              {new Date(opp.close_date).toLocaleDateString()}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                    {stageOpps.length === 0 && (
+                      <div className="text-center py-8">
+                        <p className="text-sm text-gray-400">
+                          {t('opportunities.no_opportunities')}
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <Card>
