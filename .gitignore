@@ -50,3 +50,5 @@ next-env.d.ts
 # Environment files
 *.env
 *.env.*
+node_modules/
+.next/
