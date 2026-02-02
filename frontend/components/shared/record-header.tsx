@@ -30,12 +30,12 @@ export function RecordHeader({
   moreActions = [],
 }: RecordHeaderProps) {
   return (
-    <div className="bg-white border-b border-gray-200">
+    <div className="bg-card border-b border-border">
       <div className="px-6 py-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center space-x-3">
-              <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
+              <h1 className="text-2xl font-semibold">{title}</h1>
               {status && (
                 <Badge variant={statusVariant}>{status}</Badge>
               )}
@@ -44,8 +44,8 @@ export function RecordHeader({
               <div className="mt-3 flex flex-wrap gap-4">
                 {fields.map((field, index) => (
                   <div key={index} className="text-sm">
-                    <span className="text-gray-500">{field.label}:</span>{' '}
-                    <span className="font-medium text-gray-900">{field.value}</span>
+                    <span className="text-muted-foreground">{field.label}:</span>{' '}
+                    <span className="font-medium">{field.value}</span>
                   </div>
                 ))}
               </div>

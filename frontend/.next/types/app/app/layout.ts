@@ -1,4 +1,4 @@
-// File: /app/frontend/app/app/layout.tsx
+// File: e:\apps\crmapp\frontend\app\app\layout.tsx
 import * as entry from '../../../../app/app/layout.js'
 import type { ResolvingMetadata } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

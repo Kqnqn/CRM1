@@ -22,12 +22,12 @@ const stages = [
 ];
 
 const stageColors: Record<string, string> = {
-  PROSPECTING: 'bg-gray-200',
-  QUALIFIED: 'bg-blue-200',
-  PROPOSAL: 'bg-yellow-200',
-  NEGOTIATION: 'bg-orange-200',
-  CLOSED_WON: 'bg-green-200',
-  CLOSED_LOST: 'bg-red-200',
+  PROSPECTING: 'bg-gray-700/50 border-gray-600',
+  QUALIFIED: 'bg-blue-900/40 border-blue-700',
+  PROPOSAL: 'bg-amber-900/40 border-amber-700',
+  NEGOTIATION: 'bg-orange-900/40 border-orange-700',
+  CLOSED_WON: 'bg-emerald-900/40 border-emerald-700',
+  CLOSED_LOST: 'bg-rose-900/40 border-rose-700',
 };
 
 export default function OpportunitiesPage() {
@@ -101,8 +101,8 @@ export default function OpportunitiesPage() {
     <div className="p-4 md:p-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('opportunities.title')}</h1>
-          <p className="text-gray-600 mt-1">{t('subtitle.manage_opportunities')}</p>
+          <h1 className="text-2xl font-bold">{t('opportunities.title')}</h1>
+          <p className="text-muted-foreground mt-1">{t('subtitle.manage_opportunities')}</p>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <Button
@@ -141,7 +141,7 @@ export default function OpportunitiesPage() {
             >
               <Card className={`${stageColors[stage]} border-2`}>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium">
+                  <CardTitle className="text-sm font-medium text-white">
                     {t(`stage.${stage.toLowerCase()}`)} ({getOpportunitiesByStage(stage).length})
                   </CardTitle>
                 </CardHeader>
@@ -151,25 +151,25 @@ export default function OpportunitiesPage() {
                       key={opp.id}
                       draggable
                       onDragStart={(e) => handleDragStart(e, opp.id)}
-                      className="cursor-move hover:shadow-md transition-shadow"
+                      className="cursor-move hover:shadow-md transition-shadow bg-card"
                     >
                       <CardContent className="p-4">
                         <Link
                           href={`/app/opportunities/${opp.id}`}
-                          className="font-medium text-blue-600 hover:underline block"
+                          className="font-medium text-primary hover:underline block"
                         >
                           {opp.name}
                         </Link>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                           {opp.account?.name}
                         </p>
                         <div className="flex items-center justify-between mt-2">
-                          <span className="text-lg font-semibold text-gray-900">
+                          <span className="text-lg font-semibold">
                             {formatCurrency(opp.amount || 0)}
                           </span>
                           <Badge variant="outline">{opp.probability}%</Badge>
                         </div>
-                        <p className="text-xs text-gray-500 mt-2">
+                        <p className="text-xs text-muted-foreground mt-2">
                           {opp.close_date
                             ? `${t('common.date')}: ${new Date(opp.close_date).toLocaleDateString()}`
                             : t('opportunities.no_close_date')}
@@ -178,7 +178,7 @@ export default function OpportunitiesPage() {
                     </Card>
                   ))}
                   {getOpportunitiesByStage(stage).length === 0 && (
-                    <p className="text-center text-gray-500 py-4 text-sm">
+                    <p className="text-center text-white/70 py-4 text-sm">
                       {t('opportunities.no_opportunities')}
                     </p>
                   )}
@@ -195,12 +195,12 @@ export default function OpportunitiesPage() {
                 <Link
                   key={opp.id}
                   href={`/app/opportunities/${opp.id}`}
-                  className="block p-4 border rounded-lg hover:bg-gray-50"
+                  className="block p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-medium text-blue-600">{opp.name}</h3>
-                      <p className="text-sm text-gray-600">{opp.account?.name}</p>
+                      <h3 className="font-medium text-primary">{opp.name}</h3>
+                      <p className="text-sm text-muted-foreground">{opp.account?.name}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold">{formatCurrency(opp.amount || 0)}</p>

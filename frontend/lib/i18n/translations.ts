@@ -177,6 +177,11 @@ export const translations = {
         'audit.updated': 'Ažurirano',
         'audit.deleted': 'Obrisano',
         'audit.changed_from_to': 'Promijenjeno sa "{old}" na "{new}"',
+        'audit.action.stage_change': 'Promjena Faze',
+        'audit.action.convert': 'Konverzija',
+        'audit.action.create': 'Kreiranje',
+        'audit.action.update': 'Ažuriranje',
+        'audit.action.delete': 'Brisanje',
 
         // Opportunities Page
         'opportunities.title': 'Prilike',
@@ -437,6 +442,9 @@ export const translations = {
         'message.task_completed': 'Zadatak završen',
         'message.task_completed_desc': 'Zadatak je označen kao završen',
         'message.delete_confirm_activity': 'Jeste li sigurni da želite obrisati ovu aktivnost?',
+        'message.delete_confirm_note': 'Jeste li sigurni da želite obrisati ovu bilješku?',
+        'message.note_deleted': 'Bilješka obrisana',
+        'message.note_deleted_desc': 'Bilješka je uspješno obrisana',
 
         // Reports Page Labels
         'reports.total_leads': 'Ukupno Lidova',
@@ -639,6 +647,11 @@ export const translations = {
         'audit.updated': 'Updated',
         'audit.deleted': 'Deleted',
         'audit.changed_from_to': 'Changed from "{old}" to "{new}"',
+        'audit.action.stage_change': 'Stage Change',
+        'audit.action.convert': 'Convert',
+        'audit.action.create': 'Create',
+        'audit.action.update': 'Update',
+        'audit.action.delete': 'Delete',
 
         // Opportunities Page
         'opportunities.title': 'Opportunities',
@@ -876,6 +889,9 @@ export const translations = {
         'message.task_completed': 'Task completed',
         'message.task_completed_desc': 'Task has been marked as completed',
         'message.delete_confirm_activity': 'Are you sure you want to delete this activity?',
+        'message.delete_confirm_note': 'Are you sure you want to delete this note?',
+        'message.note_deleted': 'Note deleted',
+        'message.note_deleted_desc': 'Note has been deleted successfully',
 
         // Reports Page Labels
         'reports.total_leads': 'Total Leads',

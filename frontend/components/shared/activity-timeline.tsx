@@ -52,6 +52,23 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
   const { toast } = useToast();
   const { t } = useLanguage();
 
+  const cleanupOldStageChanges = async (allAuditLogs: AuditLog[]) => {
+    // Filter only STAGE_CHANGE entries
+    const stageChanges = allAuditLogs.filter((log) => log.action === 'STAGE_CHANGE');
+    
+    // If there are more than 7, delete the older ones
+    if (stageChanges.length > 7) {
+      const sorted = stageChanges.sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      const toDelete = sorted.slice(7);
+      
+      for (const log of toDelete) {
+        await supabase.from('audit_log').delete().eq('id', log.id);
+      }
+    }
+  };
+
   const fetchTimeline = async () => {
     setLoading(true);
     const [activitiesRes, notesRes, auditRes] = await Promise.all([
@@ -78,7 +95,16 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
 
     if (activitiesRes.data) setActivities(activitiesRes.data);
     if (notesRes.data) setNotes(notesRes.data);
-    if (auditRes.data) setAuditLogs(auditRes.data);
+    
+    // Cleanup old stage changes and keep only 7 most recent
+    if (auditRes.data) {
+      await cleanupOldStageChanges(auditRes.data);
+      const stageChanges = auditRes.data.filter((log) => log.action === 'STAGE_CHANGE');
+      const otherLogs = auditRes.data.filter((log) => log.action !== 'STAGE_CHANGE');
+      const recentStageChanges = stageChanges.slice(0, 7);
+      setAuditLogs([...recentStageChanges, ...otherLogs]);
+    }
+    
     setLoading(false);
   };
 
@@ -173,6 +199,23 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
       toast({
         title: t('message.activity_deleted'),
         description: t('message.activity_deleted_desc'),
+      });
+      fetchTimeline();
+    }
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    if (!confirm(t('message.delete_confirm_note'))) return;
+
+    const { error } = await supabase
+      .from('notes')
+      .delete()
+      .eq('id', noteId);
+
+    if (!error) {
+      toast({
+        title: t('message.note_deleted'),
+        description: t('message.note_deleted_desc'),
       });
       fetchTimeline();
     }
@@ -293,8 +336,20 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
                   )}
                   {item.itemType === 'note' && (
                     <>
-                      {item.title && <p className="font-medium">{item.title}</p>}
-                      <p className="text-sm text-gray-700">{item.content}</p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          {item.title && <p className="font-medium">{item.title}</p>}
+                          <p className="text-sm text-gray-700">{item.content}</p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteNote(item.id)}
+                          title={t('common.delete')}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </Button>
+                      </div>
                       <p className="text-xs text-gray-500 mt-1">
                         {item.creator?.full_name} • {format(new Date(item.created_at), 'MMM d, yyyy h:mm a')}
                       </p>
@@ -303,7 +358,9 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
                   {item.itemType === 'audit' && (
                     <>
                       <p className="text-sm">
-                        <span className="font-medium">{item.action}</span>
+                        <span className="font-medium">
+                          {t(`audit.action.${item.action?.toLowerCase()}`) || item.action}
+                        </span>
                         {item.field_name && ` - ${item.field_name}`}
                       </p>
                       {item.old_value && item.new_value && (

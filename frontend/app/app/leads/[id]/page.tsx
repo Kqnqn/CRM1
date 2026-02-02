@@ -214,13 +214,13 @@ export default function LeadDetailPage() {
               <Card>
                 <CardContent className="p-6">
                   {lead.status === 'CONVERTED' && lead.converted_account_id && (
-                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="text-sm font-medium text-green-800">
+                    <div className="mb-6 p-4 bg-muted border border-border rounded-lg">
+                      <p className="text-sm font-medium text-foreground">
                         {t('leads.converted_msg')}
                       </p>
                       <Link
                         href={`/app/accounts/${lead.converted_account_id}`}
-                        className="text-sm text-blue-600 hover:underline mt-1 inline-block"
+                        className="text-sm text-primary hover:underline mt-1 inline-block"
                       >
                         {t('leads.view_account')}
                       </Link>

@@ -4,21 +4,30 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { canViewAll } from '@/lib/auth/permissions';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Users, Building2, Target, TrendingUp, CheckCircle2, AlertCircle, DollarSign, Wrench } from 'lucide-react';
+  Users,
+  Building2,
+  Target,
+  TrendingUp,
+  CheckCircle2,
+  AlertCircle,
+  DollarSign,
+  Wrench,
+  ArrowRight,
+  Sparkles,
+  Zap,
+  Calendar,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { cn } from '@/lib/utils';
 
 interface Activity {
   id: string;
@@ -66,6 +75,153 @@ interface Stats {
   winRate: number;
   leadsByStatus: LeadStats[];
   opportunitiesByStage: OpportunityStats[];
+}
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] as const },
+  },
+};
+
+function StatCard({
+  title,
+  value,
+  icon: Icon,
+  href,
+  trend,
+  color,
+  delay,
+}: {
+  title: string;
+  value: string | number;
+  icon: React.ElementType;
+  href?: string;
+  trend?: string;
+  color: string;
+  delay: number;
+}) {
+  const content = (
+    <motion.div
+      variants={itemVariants}
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+      className={cn(
+        'group relative overflow-hidden rounded-2xl bg-card p-6 shadow-card transition-all duration-300 hover:shadow-card-hover',
+        href && 'cursor-pointer'
+      )}
+    >
+      {/* Background gradient decoration */}
+      <div
+        className={cn(
+          'absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity duration-300 group-hover:opacity-20',
+          color
+        )}
+      />
+
+      <div className="relative flex items-start justify-between">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <h3 className="mt-2 text-3xl font-bold tracking-tight">{value}</h3>
+          {trend && (
+            <p className="mt-1 text-xs font-medium text-emerald-600">{trend}</p>
+          )}
+        </div>
+        <div
+          className={cn(
+            'flex h-12 w-12 items-center justify-center rounded-xl',
+            color.replace('bg-', 'bg-').replace('500', '100'),
+            color.replace('bg-', 'text-').replace('500', '600')
+          )}
+        >
+          <Icon className="h-6 w-6" />
+        </div>
+      </div>
+
+      {href && (
+        <div className="mt-4 flex items-center text-xs font-medium text-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          View details
+          <ArrowRight className="ml-1 h-3 w-3 transition-transform duration-200 group-hover:translate-x-0.5" />
+        </div>
+      )}
+    </motion.div>
+  );
+
+  if (href) {
+    return <Link href={href}>{content}</Link>;
+  }
+
+  return content;
+}
+
+function TaskItem({
+  task,
+  onComplete,
+  variant = 'default',
+}: {
+  task: Activity;
+  onComplete: (id: string) => void;
+  variant?: 'default' | 'overdue';
+}) {
+  const isOverdue = variant === 'overdue';
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 10 }}
+      className={cn(
+        'group flex items-center gap-3 rounded-xl border p-3 transition-all duration-200',
+        isOverdue
+          ? 'border-rose-200 bg-rose-50/50 hover:bg-rose-100/50 dark:border-rose-900/30 dark:bg-rose-900/10'
+          : 'border-border/50 bg-card/50 hover:bg-accent/50'
+      )}
+    >
+      <Button
+        size="icon"
+        variant="ghost"
+        className={cn(
+          'h-8 w-8 shrink-0 rounded-full opacity-0 transition-opacity duration-200 group-hover:opacity-100',
+          isOverdue && 'text-rose-600 hover:text-rose-700 hover:bg-rose-100'
+        )}
+        onClick={() => onComplete(task.id)}
+      >
+        <CheckCircle2 className="h-4 w-4" />
+      </Button>
+
+      <div className="min-w-0 flex-1">
+        <p
+          className={cn(
+            'truncate text-sm font-medium',
+            isOverdue && 'text-rose-900 dark:text-rose-200'
+          )}
+        >
+          {task.subject}
+        </p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <Badge variant="outline" className="text-xs font-normal">
+            {task.type}
+          </Badge>
+          <span className="text-xs text-muted-foreground">
+            <Calendar className="inline h-3 w-3 mr-1" />
+            {new Date(task.due_date).toLocaleDateString()}
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
 }
 
 export default function HomePage() {
@@ -156,16 +312,16 @@ export default function HomePage() {
           : supabase.from('opportunities').select('stage, amount').eq('owner_id', user.id),
         isAdmin
           ? supabase
-            .from('service_contracts')
-            .select('id, device_type, next_service_due_at, status, account:accounts(name)')
-            .eq('status', 'ACTIVE')
-            .order('next_service_due_at', { ascending: true })
+              .from('service_contracts')
+              .select('id, device_type, next_service_due_at, status, account:accounts(name)')
+              .eq('status', 'ACTIVE')
+              .order('next_service_due_at', { ascending: true })
           : supabase
-            .from('service_contracts')
-            .select('id, device_type, next_service_due_at, status, account:accounts(name)')
-            .eq('status', 'ACTIVE')
-            .eq('assigned_to_id', user.id)
-            .order('next_service_due_at', { ascending: true }),
+              .from('service_contracts')
+              .select('id, device_type, next_service_due_at, status, account:accounts(name)')
+              .eq('status', 'ACTIVE')
+              .eq('assigned_to_id', user.id)
+              .order('next_service_due_at', { ascending: true }),
       ]);
 
       if (openTasksRes.data) setOpenTasks(openTasksRes.data);
@@ -302,348 +458,329 @@ export default function HomePage() {
     await fetchTasks();
   };
 
+  if (loading) {
+    return (
+      <div className="page-container">
+        <div className="mb-8">
+          <Skeleton className="h-10 w-64 mb-2" />
+          <Skeleton className="h-5 w-96" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-2xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 md:p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {t('dashboard.welcome', { name: profile?.full_name || '' })}
-        </h1>
-        <p className="text-gray-600 mt-1">{t('dashboard.subtitle')}</p>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="page-container"
+    >
+      {/* Header */}
+      <motion.div variants={itemVariants} className="mb-8">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-600 text-primary-foreground shadow-glow">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {t('dashboard.welcome', { name: profile?.full_name?.split(' ')[0] || '' })}
+            </h1>
+            <p className="text-muted-foreground mt-0.5">{t('dashboard.subtitle')}</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard
+          title={t('dashboard.total_leads')}
+          value={stats.totalLeads}
+          icon={Users}
+          href="/app/leads"
+          color="bg-blue-500"
+          delay={0}
+        />
+        <StatCard
+          title={t('dashboard.total_accounts')}
+          value={stats.totalAccounts}
+          icon={Building2}
+          href="/app/accounts"
+          color="bg-emerald-500"
+          delay={0.1}
+        />
+        <StatCard
+          title={t('dashboard.open_opportunities')}
+          value={stats.totalOpportunities}
+          icon={Target}
+          href="/app/opportunities"
+          color="bg-violet-500"
+          delay={0.2}
+        />
+        <StatCard
+          title={t('dashboard.win_rate')}
+          value={`${stats.winRate.toFixed(0)}%`}
+          icon={TrendingUp}
+          trend="+5% from last month"
+          color="bg-amber-500"
+          delay={0.3}
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Link href="/app/leads">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">{t('dashboard.total_leads')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-gray-900">{stats.totalLeads}</div>
-                <Users className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/app/accounts">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                {t('dashboard.total_accounts')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-gray-900">{stats.totalAccounts}</div>
-                <Building2 className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/app/opportunities">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                {t('dashboard.open_opportunities')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-gray-900">
-                  {stats.totalOpportunities}
-                </div>
-                <Target className="h-8 w-8 text-orange-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">{t('dashboard.win_rate')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-3xl font-bold text-gray-900">
-                {stats.winRate.toFixed(0)}%
-              </div>
-              <TrendingUp className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('dashboard.leads_by_status')}</CardTitle>
+      {/* Analytics Cards */}
+      <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary" />
+              {t('dashboard.leads_by_status')}
+            </CardTitle>
             <CardDescription>{t('dashboard.leads_by_status_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
             {stats.leadsByStatus.length === 0 ? (
-              <p className="text-center py-4 text-muted-foreground">{t('dashboard.no_leads')}</p>
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-3">
+                  <Users className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">{t('dashboard.no_leads')}</p>
+              </div>
             ) : (
-              <div className="space-y-3">
-                {stats.leadsByStatus.map((item) => (
-                  <div key={item.status} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+              <div className="space-y-4">
+                {stats.leadsByStatus.map((item, index) => (
+                  <motion.div
+                    key={item.status}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
                       <Badge
-                        className={
+                        variant={
                           item.status === 'CONVERTED'
-                            ? 'bg-green-500/20 text-green-300'
+                            ? 'success'
                             : item.status === 'QUALIFIED'
-                              ? 'bg-blue-500/20 text-blue-300'
-                              : 'bg-muted text-muted-foreground'
+                            ? 'info'
+                            : 'secondary'
                         }
+                        className="min-w-[80px] justify-center"
                       >
                         {t(`status.${item.status.toLowerCase()}`)}
                       </Badge>
                     </div>
-                    <div className="text-lg font-semibold">{item.count}</div>
-                  </div>
+                    <div className="flex items-center gap-3">
+                      <div className="h-2 w-24 rounded-full bg-muted overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${(item.count / stats.totalLeads) * 100}%` }}
+                          transition={{ delay: 0.5 + index * 0.1, duration: 0.5 }}
+                          className={cn(
+                            'h-full rounded-full',
+                            item.status === 'CONVERTED'
+                              ? 'bg-emerald-500'
+                              : item.status === 'QUALIFIED'
+                              ? 'bg-primary'
+                              : 'bg-muted-foreground'
+                          )}
+                        />
+                      </div>
+                      <span className="text-sm font-semibold w-8 text-right">{item.count}</span>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('dashboard.opportunities_by_stage')}</CardTitle>
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-violet-500" />
+              {t('dashboard.opportunities_by_stage')}
+            </CardTitle>
             <CardDescription>{t('dashboard.opportunities_by_stage_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
             {stats.opportunitiesByStage.length === 0 ? (
-              <p className="text-center py-4 text-gray-500">{t('dashboard.no_opportunities')}</p>
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-3">
+                  <Target className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">{t('dashboard.no_opportunities')}</p>
+              </div>
             ) : (
-              <div className="space-y-3">
-                {stats.opportunitiesByStage.map((item) => (
-                  <div key={item.stage} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+              <div className="space-y-4">
+                {stats.opportunitiesByStage.map((item, index) => (
+                  <motion.div
+                    key={item.stage}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
                       <Badge
-                        className={
+                        variant={
                           item.stage === 'CLOSED_WON'
-                            ? 'bg-green-500/20 text-green-300'
+                            ? 'success'
                             : item.stage === 'CLOSED_LOST'
-                              ? 'bg-red-500/20 text-red-300'
-                              : 'bg-blue-500/20 text-blue-300'
+                            ? 'error'
+                            : 'info'
                         }
+                        className="min-w-[100px] justify-center"
                       >
                         {t(`stage.${item.stage.toLowerCase()}`)}
                       </Badge>
-                      <span className="text-sm text-muted-foreground">({item.count})</span>
+                      <span className="text-xs text-muted-foreground">({item.count})</span>
                     </div>
-                    <div className="text-lg font-semibold">
+                    <span className="text-sm font-semibold">
                       {formatCurrency(item.total_amount)}
-                    </div>
-                  </div>
+                    </span>
+                  </motion.div>
                 ))}
               </div>
             )}
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+      {/* Task Lists Grid */}
+      <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {/* Open Tasks */}
         <Card>
-          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => router.push('/app/activities')}>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-blue-600" />
-              {t('dashboard.my_open_tasks')}
-            </CardTitle>
+          <CardHeader className="pb-4 cursor-pointer" onClick={() => router.push('/app/activities')}>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <CheckCircle2 className="h-4 w-4" />
+                </div>
+                {t('dashboard.my_open_tasks')}
+              </CardTitle>
+              <Badge variant="secondary">{openTasks.length}</Badge>
+            </div>
             <CardDescription>{t('dashboard.my_open_tasks_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <p className="text-center py-4 text-gray-500">{t('dashboard.loading')}</p>
-            ) : openTasks.length === 0 ? (
-              <p className="text-center py-4 text-gray-500">{t('empty.no_open_tasks')}</p>
-            ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {openTasks.map((task) => (
-                  <div key={task.id} className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{task.subject}</p>
-                        <p className="text-xs text-gray-600 mt-1">
-                          {task.type} • {t('dashboard.due')} {new Date(task.due_date).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleMarkComplete(task.id)}
-                      >
-                        <CheckCircle2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+            {openTasks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 mb-3">
+                  <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <p className="text-sm text-muted-foreground">{t('empty.no_open_tasks')}</p>
               </div>
+            ) : (
+              <ScrollArea className="h-[300px] pr-4">
+                <div className="space-y-2">
+                  {openTasks.map((task) => (
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      onComplete={handleMarkComplete}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
             )}
           </CardContent>
         </Card>
 
+        {/* Overdue Tasks */}
         <Card>
-          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => router.push('/app/activities')}>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-red-600" />
-              {t('dashboard.overdue_tasks')}
-            </CardTitle>
+          <CardHeader className="pb-4 cursor-pointer" onClick={() => router.push('/app/activities')}>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400">
+                  <AlertCircle className="h-4 w-4" />
+                </div>
+                {t('dashboard.overdue_tasks')}
+              </CardTitle>
+              <Badge variant="error">{overdueTasks.length}</Badge>
+            </div>
             <CardDescription>{t('dashboard.overdue_tasks_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <p className="text-center py-4 text-gray-500">{t('dashboard.loading')}</p>
-            ) : overdueTasks.length === 0 ? (
-              <p className="text-center py-4 text-gray-500">{t('empty.no_overdue_tasks')}</p>
-            ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {overdueTasks.map((task) => (
-                  <div key={task.id} className="p-3 border border-red-200 bg-red-50 rounded-lg">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate text-red-900">{task.subject}</p>
-                        <p className="text-xs text-red-600 mt-1">
-                          {task.type} • {t('dashboard.overdue_since')} {new Date(task.due_date).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleMarkComplete(task.id)}
-                      >
-                        <CheckCircle2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+            {overdueTasks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 mb-3">
+                  <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <p className="text-sm text-muted-foreground">{t('empty.no_overdue_tasks')}</p>
               </div>
+            ) : (
+              <ScrollArea className="h-[300px] pr-4">
+                <div className="space-y-2">
+                  {overdueTasks.map((task) => (
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      onComplete={handleMarkComplete}
+                      variant="overdue"
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
             )}
           </CardContent>
         </Card>
 
+        {/* Unpaid Invoices */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-orange-600" />
-              {t('dashboard.unpaid_invoices')}
-            </CardTitle>
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
+                  <DollarSign className="h-4 w-4" />
+                </div>
+                {t('dashboard.unpaid_invoices')}
+              </CardTitle>
+              <Badge variant="warning">{unpaidAccounts.length}</Badge>
+            </div>
             <CardDescription>{t('dashboard.unpaid_invoices_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <p className="text-center py-4 text-gray-500">{t('dashboard.loading')}</p>
-            ) : unpaidAccounts.length === 0 ? (
-              <p className="text-center py-4 text-gray-500">{t('empty.all_invoices_paid')}</p>
-            ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {unpaidAccounts.map((account) => (
-                  <div
-                    key={account.id}
-                    className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                    onClick={() => router.push(`/app/accounts/${account.id}?tab=orders`)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{account.name}</p>
-                        <p className="text-xs text-gray-600 mt-1">
-                          {account.invoice_count} {account.invoice_count === 1 ? t('dashboard.unpaid_invoice') : t('dashboard.unpaid_invoices')}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-red-600">
-                          {formatCurrency(account.total_outstanding)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            {unpaidAccounts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 mb-3">
+                  <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <p className="text-sm text-muted-foreground">{t('empty.all_invoices_paid')}</p>
               </div>
+            ) : (
+              <ScrollArea className="h-[300px] pr-4">
+                <div className="space-y-2">
+                  {unpaidAccounts.map((account) => (
+                    <motion.div
+                      key={account.id}
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="group flex items-center justify-between rounded-xl border border-border/50 bg-card/50 p-3 transition-colors hover:bg-accent/50 cursor-pointer"
+                      onClick={() => router.push(`/app/accounts/${account.id}?tab=orders`)}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{account.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {account.invoice_count} {account.invoice_count === 1 ? 'invoice' : 'invoices'}
+                        </p>
+                      </div>
+                      <span className="text-sm font-semibold text-rose-600">
+                        {formatCurrency(account.total_outstanding)}
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+              </ScrollArea>
             )}
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => router.push('/app/services?tab=due-soon')}>
-            <CardTitle className="flex items-center gap-2">
-              <Wrench className="h-5 w-5 text-orange-600" />
-              {t('dashboard.services_due_soon')}
-            </CardTitle>
-            <CardDescription>{t('dashboard.services_due_soon_desc')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <p className="text-center py-4 text-gray-500">{t('dashboard.loading')}</p>
-            ) : servicesDueSoon.length === 0 ? (
-              <p className="text-center py-4 text-gray-500">{t('empty.no_services_due')}</p>
-            ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {servicesDueSoon.map((service) => (
-                  <div
-                    key={service.id}
-                    className="p-3 border border-orange-200 bg-orange-50 rounded-lg hover:bg-orange-100 cursor-pointer"
-                    onClick={() => router.push(`/app/services/${service.id}`)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate text-orange-900">{service.device_type}</p>
-                        <p className="text-xs text-orange-600 mt-1">{service.account_name}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs font-medium text-orange-700">
-                          {new Date(service.next_service_due_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => router.push('/app/services?tab=overdue')}>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-red-600" />
-              {t('dashboard.overdue_services')}
-            </CardTitle>
-            <CardDescription>{t('dashboard.overdue_services_desc')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <p className="text-center py-4 text-gray-500">{t('dashboard.loading')}</p>
-            ) : servicesOverdue.length === 0 ? (
-              <p className="text-center py-4 text-gray-500">{t('empty.no_overdue_services')}</p>
-            ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {servicesOverdue.map((service) => (
-                  <div
-                    key={service.id}
-                    className="p-3 border border-red-200 bg-red-50 rounded-lg hover:bg-red-100 cursor-pointer"
-                    onClick={() => router.push(`/app/services/${service.id}`)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate text-red-900">{service.device_type}</p>
-                        <p className="text-xs text-red-600 mt-1">{service.account_name}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs font-medium text-red-700">
-                          {new Date(service.next_service_due_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

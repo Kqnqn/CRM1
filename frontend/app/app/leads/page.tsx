@@ -3,8 +3,12 @@
 import { useEffect, useState } from 'react';
 import { supabase, Lead } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
   SelectContent,
@@ -20,11 +24,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Upload } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { canViewAll } from '@/lib/auth/permissions';
 import {
   Dialog,
   DialogContent,
@@ -32,15 +31,38 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Plus,
+  Search,
+  Upload,
+  MoreHorizontal,
+  Filter,
+  Users,
+  Mail,
+  Phone,
+  Calendar,
+  CheckCircle2,
+  AlertCircle,
+} from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { canViewAll } from '@/lib/auth/permissions';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { cn } from '@/lib/utils';
 
-const statusColors: Record<string, string> = {
-  NEW: 'bg-blue-100 text-blue-800',
-  CONTACTED: 'bg-yellow-100 text-yellow-800',
-  QUALIFIED: 'bg-green-100 text-green-800',
-  CONVERTED: 'bg-purple-100 text-purple-800',
-  ARCHIVED: 'bg-gray-100 text-gray-800',
+const statusConfig: Record<string, { variant: 'default' | 'secondary' | 'success' | 'warning' | 'info'; color: string }> = {
+  NEW: { variant: 'info', color: 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-400' },
+  CONTACTED: { variant: 'warning', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' },
+  QUALIFIED: { variant: 'success', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' },
+  CONVERTED: { variant: 'default', color: 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400' },
+  ARCHIVED: { variant: 'secondary', color: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400' },
 };
 
 interface ImportResult {
@@ -48,6 +70,23 @@ interface ImportResult {
   duplicateCount: number;
   errors: Array<{ row: number; error: string; data: any }>;
 }
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] as const },
+  },
+};
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -156,146 +195,274 @@ export default function LeadsPage() {
   };
 
   return (
-    <div className="p-4 md:p-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('leads.title')}</h1>
-          <p className="text-gray-600 mt-1">{t('subtitle.manage_leads')}</p>
-        </div>
-        <div className="flex gap-2 w-full md:w-auto">
-          <label htmlFor="csv-upload" className="flex-1 md:flex-none">
-            <Button variant="outline" disabled={importing} asChild className="w-full md:w-auto">
-              <span>
-                <Upload className="h-4 w-4 mr-2" />
-                {importing ? t('common.importing') : t('common.import_csv')}
-              </span>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="page-container"
+    >
+      {/* Header */}
+      <motion.div variants={itemVariants} className="mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow-glow">
+                <Users className="h-5 w-5" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight">{t('leads.title')}</h1>
+                <p className="text-sm text-muted-foreground">{t('subtitle.manage_leads')}</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              id="csv-upload"
+              type="file"
+              accept=".csv"
+              onChange={handleImportCSV}
+              className="hidden"
+            />
+            <Button
+              variant="outline"
+              disabled={importing}
+              onClick={() => document.getElementById('csv-upload')?.click()}
+              className="gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              {importing ? t('common.importing') : t('common.import_csv')}
             </Button>
-          </label>
-          <input
-            id="csv-upload"
-            type="file"
-            accept=".csv"
-            onChange={handleImportCSV}
-            className="hidden"
-          />
-          <Button onClick={() => router.push('/app/leads/new')} className="flex-1 md:flex-none w-full md:w-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            {t('leads.new_lead')}
-          </Button>
+            <Button
+              onClick={() => router.push('/app/leads/new')}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              {t('leads.new_lead')}
+            </Button>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="p-4 border-b border-gray-200 flex flex-col md:flex-row items-center gap-4">
-          <div className="flex-1 relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+      {/* Filters */}
+      <motion.div variants={itemVariants} className="mb-6">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder={t('leads.search_placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 w-full"
+              className="pl-10"
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full md:w-48">
-              <SelectValue placeholder={t('leads.filter_by_status')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">{t('common.all_statuses')}</SelectItem>
-              <SelectItem value="NEW">{t('status.new')}</SelectItem>
-              <SelectItem value="CONTACTED">{t('status.contacted')}</SelectItem>
-              <SelectItem value="QUALIFIED">{t('status.qualified')}</SelectItem>
-              <SelectItem value="CONVERTED">{t('status.converted')}</SelectItem>
-              <SelectItem value="ARCHIVED">{t('status.archived')}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {loading ? (
-          <div className="p-8 text-center">{t('dashboard.loading')}</div>
-        ) : leads.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
-            {t('leads.no_leads')}
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder={t('leads.filter_by_status')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">{t('common.all_statuses')}</SelectItem>
+                <SelectItem value="NEW">{t('status.new')}</SelectItem>
+                <SelectItem value="CONTACTED">{t('status.contacted')}</SelectItem>
+                <SelectItem value="QUALIFIED">{t('status.qualified')}</SelectItem>
+                <SelectItem value="CONVERTED">{t('status.converted')}</SelectItem>
+                <SelectItem value="ARCHIVED">{t('status.archived')}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('leads.table.company')}</TableHead>
-                <TableHead>{t('leads.table.name')}</TableHead>
-                <TableHead>{t('leads.table.email')}</TableHead>
-                <TableHead>{t('leads.table.phone')}</TableHead>
-                <TableHead>{t('leads.table.status')}</TableHead>
-                <TableHead>{t('leads.table.owner')}</TableHead>
-                <TableHead>{t('leads.table.created')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {leads.map((lead) => (
-                <TableRow key={lead.id} className="cursor-pointer hover:bg-gray-50">
-                  <TableCell>
-                    <Link
-                      href={`/app/leads/${lead.id}`}
-                      className="font-medium text-blue-600 hover:underline"
-                    >
-                      {lead.company_name}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{lead.contact_person_name}</TableCell>
-                  <TableCell>{lead.email}</TableCell>
-                  <TableCell>{lead.phone || '-'}</TableCell>
-                  <TableCell>
-                    <Badge className={statusColors[lead.status]}>{t(`status.${lead.status.toLowerCase()}`)}</Badge>
-                  </TableCell>
-                  <TableCell>{lead.owner?.full_name}</TableCell>
-                  <TableCell>
-                    {new Date(lead.created_at).toLocaleDateString()}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </div>
+        </div>
+      </motion.div>
 
+      {/* Table */}
+      <motion.div variants={itemVariants}>
+        <Card className="overflow-hidden">
+          {loading ? (
+            <div className="p-8 space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : leads.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
+                <Users className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold mb-1">{t('leads.no_leads')}</h3>
+              <p className="text-sm text-muted-foreground max-w-sm">
+                Get started by creating your first lead or importing from a CSV file.
+              </p>
+              <div className="flex gap-3 mt-6">
+                <Button variant="outline" onClick={() => document.getElementById('csv-upload')?.click()}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Import CSV
+                </Button>
+                <Button onClick={() => router.push('/app/leads/new')}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Lead
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[250px]">{t('leads.table.company')}</TableHead>
+                  <TableHead>{t('leads.table.name')}</TableHead>
+                  <TableHead className="hidden md:table-cell">{t('leads.table.email')}</TableHead>
+                  <TableHead className="hidden lg:table-cell">{t('leads.table.phone')}</TableHead>
+                  <TableHead>{t('leads.table.status')}</TableHead>
+                  <TableHead className="hidden xl:table-cell">{t('leads.table.owner')}</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {leads.map((lead, index) => (
+                  <motion.tr
+                    key={lead.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    className="group cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => router.push(`/app/leads/${lead.id}`)}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-violet-500/20 to-violet-600/20 flex items-center justify-center">
+                          <span className="text-sm font-semibold text-violet-600 dark:text-violet-400">
+                            {lead.company_name?.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-primary">{lead.company_name}</p>
+                          <p className="text-xs text-muted-foreground md:hidden">
+                            {lead.contact_person_name}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">{lead.contact_person_name}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Mail className="h-3.5 w-3.5" />
+                        <span className="text-sm">{lead.email}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {lead.phone ? (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Phone className="h-3.5 w-3.5" />
+                          <span className="text-sm">{lead.phone}</span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="secondary"
+                        className={cn(
+                          'font-medium',
+                          statusConfig[lead.status]?.color
+                        )}
+                      >
+                        {t(`status.${lead.status.toLowerCase()}`)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden xl:table-cell">
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-full bg-gradient-to-br from-primary to-primary-600 flex items-center justify-center text-[10px] font-medium text-primary-foreground">
+                          {lead.owner?.full_name?.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="text-sm">{lead.owner?.full_name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => router.push(`/app/leads/${lead.id}`)}>
+                            View details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => router.push(`/app/leads/${lead.id}/edit`)}>
+                            Edit lead
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </motion.tr>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </Card>
+      </motion.div>
+
+      {/* Results count */}
+      {!loading && leads.length > 0 && (
+        <motion.p
+          variants={itemVariants}
+          className="mt-4 text-sm text-muted-foreground"
+        >
+          Showing {leads.length} lead{leads.length !== 1 ? 's' : ''}
+        </motion.p>
+      )}
+
+      {/* Import Results Dialog */}
       <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t('leads.import_results')}</DialogTitle>
-            <DialogDescription>
-              {t('leads.import_summary')}
-            </DialogDescription>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+              {t('leads.import_results')}
+            </DialogTitle>
+            <DialogDescription>{t('leads.import_summary')}</DialogDescription>
           </DialogHeader>
           {importResult && (
-            <div className="space-y-4">
+            <div className="space-y-4 mt-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-700">
+                <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-900/30">
+                  <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                     {importResult.createdCount}
                   </div>
-                  <div className="text-sm text-green-600">{t('leads.created_count')}</div>
+                  <div className="text-sm text-emerald-700 dark:text-emerald-300">
+                    {t('leads.created_count')}
+                  </div>
                 </div>
-                <div className="p-4 bg-yellow-50 rounded-lg">
-                  <div className="text-2xl font-bold text-yellow-700">
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-900/30">
+                  <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
                     {importResult.duplicateCount}
                   </div>
-                  <div className="text-sm text-yellow-600">{t('leads.duplicate_count')}</div>
+                  <div className="text-sm text-amber-700 dark:text-amber-300">
+                    {t('leads.duplicate_count')}
+                  </div>
                 </div>
               </div>
 
               {importResult.errors.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-sm">{t('leads.errors_duplicates')}:</h4>
+                  <h4 className="font-semibold text-sm flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-rose-500" />
+                    {t('leads.errors_duplicates')}:
+                  </h4>
                   <div className="max-h-64 overflow-y-auto space-y-2">
                     {importResult.errors.map((error, index) => (
                       <div
                         key={index}
-                        className="p-3 bg-red-50 rounded border border-red-200 text-sm"
+                        className="p-3 bg-rose-50 dark:bg-rose-900/20 rounded-xl border border-rose-200 dark:border-rose-900/30 text-sm"
                       >
-                        <div className="font-medium text-red-900">
+                        <div className="font-medium text-rose-900 dark:text-rose-200">
                           {t('leads.row')} {error.row}: {error.error}
                         </div>
-                        <div className="text-red-700 mt-1">
+                        <div className="text-rose-700 dark:text-rose-300 mt-1">
                           Email: {error.data.email || 'N/A'}
                           {error.data.companyName && ` | Company: ${error.data.companyName}`}
                         </div>
@@ -308,6 +475,6 @@ export default function LeadsPage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   );
 }
