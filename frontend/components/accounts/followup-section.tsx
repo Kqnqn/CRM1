@@ -233,7 +233,7 @@ export function FollowUpSection({ accountId, onCreated }: FollowUpSectionProps) 
                   {t('followup.sync_calendar')}
                 </label>
                 {!profile?.google_calendar_connected && (
-                  <p className="text-xs text-gray-600 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {t('followup.calendar_connect_first')}
                   </p>
                 )}

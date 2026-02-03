@@ -145,6 +145,58 @@ export default function LeadsPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const parseCSV = (text: string): Array<Record<string, string>> => {
+    const lines = text.trim().split('\n').filter(line => line.trim() !== '');
+    if (lines.length === 0) {
+      throw new Error('CSV file is empty');
+    }
+
+    const rows: Array<Record<string, string>> = [];
+    
+    // Check if first line looks like headers (contains common header keywords)
+    const firstLine = lines[0];
+    const firstLineValues = firstLine.split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
+    const headerKeywords = ['email', 'company', 'name', 'phone', 'source', 'owner'];
+    const looksLikeHeaders = firstLineValues.some(val => 
+      headerKeywords.some(keyword => val.toLowerCase().includes(keyword))
+    );
+
+    if (looksLikeHeaders && lines.length >= 2) {
+      // Has headers - first row is headers
+      const headers = firstLineValues;
+      
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
+        const row: Record<string, string> = {};
+
+        headers.forEach((header, index) => {
+          if (values[index] !== undefined) {
+            row[header] = values[index];
+          }
+        });
+
+        rows.push(row);
+      }
+    } else {
+      // No headers - map by column position
+      // Expected order: email, companyName, contactPersonName, phone, source, ownerEmail
+      for (let i = 0; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
+        const row: Record<string, string> = {
+          email: values[0] || '',
+          companyName: values[1] || '',
+          contactPersonName: values[2] || '',
+          phone: values[3] || '',
+          source: values[4] || '',
+          ownerEmail: values[5] || '',
+        };
+        rows.push(row);
+      }
+    }
+
+    return rows;
+  };
+
   const handleImportCSV = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -153,35 +205,95 @@ export default function LeadsPage() {
     setImportResult(null);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const text = await file.text();
+      const rows = parseCSV(text);
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const result: ImportResult = {
+        createdCount: 0,
+        duplicateCount: 0,
+        errors: [],
+      };
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/import-leads-csv`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session?.access_token}`,
-          },
-          body: formData,
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const email = row.email || row.Email || row.EMAIL;
+        const companyName = row.companyName || row.company_name || row['Company Name'] || row['company name'] || '';
+        const contactPersonName = row.contactPersonName || row.contact_person_name || row['Contact Person'] || row['contact person'] || row['Contact Person Name'] || '';
+        const phone = row.phone || row.Phone || row.PHONE || row.phoneNumber || row['Phone Number'] || null;
+        const source = row.source || row.Source || row.SOURCE || row.leadSource || row['Lead Source'] || null;
+        const ownerEmail = row.ownerEmail || row.owner_email || row['Owner Email'] || row['owner email'] || null;
+
+        if (!email) {
+          result.errors.push({
+            row: i + 2,
+            error: 'Email is required',
+            data: row,
+          });
+          continue;
         }
-      );
 
-      const result = await response.json();
+        // Check for duplicate email
+        const { data: existingLead } = await supabase
+          .from('leads')
+          .select('id')
+          .eq('email', email)
+          .maybeSingle();
 
-      if (response.ok) {
-        setImportResult(result);
-        setShowImportDialog(true);
-        fetchLeads();
-        toast({
-          title: t('leads.import_success'),
-          description: `${t('leads.created_count')}: ${result.createdCount}, ${t('leads.duplicate_count')}: ${result.duplicateCount}`,
-        });
-      } else {
-        throw new Error(result.error || 'Import failed');
+        if (existingLead) {
+          result.duplicateCount++;
+          result.errors.push({
+            row: i + 2,
+            error: 'Duplicate email',
+            data: row,
+          });
+          continue;
+        }
+
+        // Determine owner_id
+        let ownerId = user?.id;
+        if (ownerEmail) {
+          const { data: ownerProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', ownerEmail)
+            .maybeSingle();
+
+          if (ownerProfile) {
+            ownerId = ownerProfile.id;
+          }
+        }
+
+        // Insert the lead
+        const { error: insertError } = await supabase
+          .from('leads')
+          .insert({
+            company_name: companyName,
+            contact_person_name: contactPersonName,
+            email: email,
+            phone: phone,
+            source: source,
+            owner_id: ownerId,
+            status: 'NEW',
+          });
+
+        if (insertError) {
+          result.errors.push({
+            row: i + 2,
+            error: insertError.message,
+            data: row,
+          });
+        } else {
+          result.createdCount++;
+        }
       }
+
+      setImportResult(result);
+      setShowImportDialog(true);
+      fetchLeads();
+      toast({
+        title: t('leads.import_success'),
+        description: `${t('leads.created_count')}: ${result.createdCount}, ${t('leads.duplicate_count')}: ${result.duplicateCount}`,
+      });
     } catch (error: any) {
       toast({
         title: t('leads.import_failed'),

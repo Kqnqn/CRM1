@@ -182,8 +182,8 @@ export default function ProfilePage() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
-        <p className="text-gray-600 mt-1">Manage your account settings and preferences</p>
+        <h1 className="text-2xl font-bold text-foreground">Profile Settings</h1>
+        <p className="text-muted-foreground mt-1">Manage your account settings and preferences</p>
       </div>
 
       <div className="space-y-6">
@@ -210,16 +210,16 @@ export default function ProfilePage() {
               <div className="space-y-2">
                 <Label>Email</Label>
                 <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-gray-400" />
+                  <Mail className="h-4 w-4 text-muted-foreground" />
                   <Input value={profileData.email} disabled className="flex-1" />
                 </div>
-                <p className="text-xs text-gray-500">Email cannot be changed</p>
+                <p className="text-xs text-muted-foreground">Email cannot be changed</p>
               </div>
 
               <div className="space-y-2">
                 <Label>Phone</Label>
                 <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-gray-400" />
+                  <Phone className="h-4 w-4 text-muted-foreground" />
                   <Input
                     value={profileData.phone}
                     onChange={(e) =>
@@ -237,12 +237,12 @@ export default function ProfilePage() {
                   <Badge
                     className={
                       profile.role === 'ADMIN'
-                        ? 'bg-red-100 text-red-800'
+                        ? 'bg-red-500/20 text-red-500 border-red-500/30'
                         : profile.role === 'MANAGER'
-                        ? 'bg-blue-100 text-blue-800'
+                        ? 'bg-blue-500/20 text-blue-500 border-blue-500/30'
                         : profile.role === 'SALES_REP'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
+                        ? 'bg-green-500/20 text-green-500 border-green-500/30'
+                        : 'bg-muted text-muted-foreground'
                     }
                   >
                     {profile.role}
@@ -283,7 +283,7 @@ export default function ProfilePage() {
                 onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
                 placeholder="Enter new password"
               />
-              <p className="text-xs text-gray-500">Minimum 8 characters</p>
+              <p className="text-xs text-muted-foreground">Minimum 8 characters</p>
             </div>
 
             <div className="space-y-2">
@@ -312,24 +312,24 @@ export default function ProfilePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-card">
               <div className="flex items-center gap-3">
                 {profile.google_calendar_connected ? (
                   <>
-                    <CheckCircle2 className="h-6 w-6 text-green-600" />
+                    <CheckCircle2 className="h-6 w-6 text-green-500" />
                     <div>
-                      <p className="font-medium text-gray-900">Connected</p>
-                      <p className="text-sm text-gray-600">
+                      <p className="font-medium text-foreground">Connected</p>
+                      <p className="text-sm text-muted-foreground">
                         Your Google Calendar is connected
                       </p>
                     </div>
                   </>
                 ) : (
                   <>
-                    <XCircle className="h-6 w-6 text-gray-400" />
+                    <XCircle className="h-6 w-6 text-muted-foreground" />
                     <div>
-                      <p className="font-medium text-gray-900">Not Connected</p>
-                      <p className="text-sm text-gray-600">
+                      <p className="font-medium text-foreground">Not Connected</p>
+                      <p className="text-sm text-muted-foreground">
                         Connect your Google Calendar to sync tasks and events
                       </p>
                     </div>
@@ -352,8 +352,8 @@ export default function ProfilePage() {
               )}
             </div>
 
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+              <p className="text-sm text-primary">
                 When you connect Google Calendar, tasks and events you create in the CRM
                 will automatically appear in your Google Calendar.
               </p>
