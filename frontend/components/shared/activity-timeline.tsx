@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { supabase, Activity, Note, AuditLog } from '@/lib/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -31,7 +32,15 @@ interface ActivityTimelineProps {
   relatedToId: string;
 }
 
-export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelineProps) {
+export function ActivityTimeline(props: ActivityTimelineProps) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ActivityTimelineContent {...props} />
+    </Suspense>
+  );
+}
+
+function ActivityTimelineContent({ relatedToType, relatedToId }: ActivityTimelineProps) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -55,14 +64,14 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
   const cleanupOldStageChanges = async (allAuditLogs: AuditLog[]) => {
     // Filter only STAGE_CHANGE entries
     const stageChanges = allAuditLogs.filter((log) => log.action === 'STAGE_CHANGE');
-    
+
     // If there are more than 7, delete the older ones
     if (stageChanges.length > 7) {
       const sorted = stageChanges.sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
       const toDelete = sorted.slice(7);
-      
+
       for (const log of toDelete) {
         await supabase.from('audit_log').delete().eq('id', log.id);
       }
@@ -95,7 +104,7 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
 
     if (activitiesRes.data) setActivities(activitiesRes.data);
     if (notesRes.data) setNotes(notesRes.data);
-    
+
     // Cleanup old stage changes and keep only 7 most recent
     if (auditRes.data) {
       await cleanupOldStageChanges(auditRes.data);
@@ -104,13 +113,25 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
       const recentStageChanges = stageChanges.slice(0, 7);
       setAuditLogs([...recentStageChanges, ...otherLogs]);
     }
-    
+
     setLoading(false);
   };
 
   useEffect(() => {
     fetchTimeline();
   }, [relatedToType, relatedToId]);
+
+  const searchParams = useSearchParams();
+  const taskId = searchParams.get('taskId');
+
+  useEffect(() => {
+    if (taskId && activities.length > 0) {
+      const task = activities.find((a) => a.id === taskId);
+      if (task) {
+        handleEditActivity(task);
+      }
+    }
+  }, [taskId, activities]);
 
   const handleAddNote = async () => {
     if (!newNote.trim()) return;
@@ -157,6 +178,7 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
       updateData.status = editFormData.status;
       updateData.priority = editFormData.priority;
       updateData.due_date = editFormData.due_date || null;
+      updateData.completed = editFormData.status === 'COMPLETED';
     }
 
     if (activityType === 'EVENT' || activityType === 'MEETING') {
@@ -288,9 +310,6 @@ export function ActivityTimeline({ relatedToType, relatedToId }: ActivityTimelin
                         <div className="flex items-center space-x-2">
                           <span className="font-medium">{item.subject}</span>
                           <Badge variant="outline">{t(`status.${item.status?.toLowerCase()}`)}</Badge>
-                          {item.completed && (
-                            <Badge className="bg-green-100 text-green-800">{t('status.completed')}</Badge>
-                          )}
                         </div>
                         <div className="flex items-center gap-2">
                           {!item.completed && (item.type === 'TASK' || item.type === 'CALL' || item.type === 'EMAIL') && (

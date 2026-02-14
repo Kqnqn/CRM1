@@ -70,14 +70,6 @@ export default function ServicesPage() {
     setLoading(false);
   };
 
-  const fetchAccounts = async () => {
-    const { data } = await supabase
-      .from('accounts')
-      .select('id, name')
-      .order('name');
-    if (data) setAccounts(data);
-  };
-
   const fetchUsers = async () => {
     const { data } = await supabase
       .from('profiles')
@@ -89,7 +81,6 @@ export default function ServicesPage() {
   useEffect(() => {
     if (user) {
       fetchServices();
-      fetchAccounts();
       fetchUsers();
     }
   }, [user]);
@@ -113,7 +104,7 @@ export default function ServicesPage() {
     );
 
     const serviceData: any = {
-      account_id: formData.account_id,
+      account_id: formData.account_id || null,
       device_type: formData.device_type,
       device_serial: formData.device_serial || null,
       location_address: formData.location_address,
@@ -163,7 +154,7 @@ export default function ServicesPage() {
   const handleEdit = (service: ServiceContract) => {
     setEditingService(service);
     setFormData({
-      account_id: service.account_id,
+      account_id: service.account_id || '',
       device_type: service.device_type,
       device_serial: service.device_serial || '',
       location_address: service.location_address,
@@ -285,25 +276,6 @@ export default function ServicesPage() {
               <DialogTitle>{editingService ? t('services.edit_service') : t('services.create_service')}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label>{t('common.company')}</Label>
-                <Select
-                  value={formData.account_id}
-                  onValueChange={(value) => setFormData({ ...formData, account_id: value })}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('common.select_account')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {accounts.map((account) => (
-                      <SelectItem key={account.id} value={account.id}>
-                        {account.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -567,7 +539,7 @@ function ServiceList({
                   {getStatusBadge(service)}
                 </div>
                 <p className="text-sm text-gray-600 mt-1">
-                  {service.account?.name} - {service.location_address}
+                  {service.location_address}
                 </p>
                 {service.device_serial && (
                   <p className="text-xs text-gray-500 mt-1">{t('services.device_serial')}: {service.device_serial}</p>

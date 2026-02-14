@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start",
+    "build:prepare": "powershell -Command \"if (Test-Path '../build') { Remove-Item -Recurse -Force '../build' }; New-Item -ItemType Directory -Path '../build' -Force; Copy-Item -Path 'app', 'components', 'lib', 'hooks', 'public', 'package.json', 'next.config.js', 'tailwind.config.ts', 'postcss.config.js', 'tsconfig.json', '.eslintrc.json', 'components.json', '.env.example' -Destination '../build' -Recurse -Force -ErrorAction SilentlyContinue\"",
+    "start": "next start -p 3000",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },
@@ -40,7 +41,7 @@
     "@radix-ui/react-toggle": "^1.1.0",
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.2",
-    "@supabase/supabase-js": "^2.58.0",
+    "@supabase/supabase-js": "^2.95.3",
     "@types/node": "20.6.2",
     "@types/react": "18.2.22",
     "@types/react-dom": "18.2.7",
@@ -49,15 +50,18 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
+    "dotenv": "^17.2.4",
     "embla-carousel-react": "^8.3.0",
     "eslint": "8.49.0",
     "eslint-config-next": "13.5.1",
     "framer-motion": "^12.29.2",
+    "googleapis": "^171.4.0",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.446.0",
     "next": "13.5.1",
     "next-themes": "^0.3.0",
     "postcss": "8.4.30",
+    "puppeteer": "^24.37.2",
     "react": "18.2.0",
     "react-day-picker": "^8.10.1",
     "react-dom": "18.2.0",
@@ -71,5 +75,8 @@
     "typescript": "5.2.2",
     "vaul": "^0.9.9",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/puppeteer": "^5.4.7"
   }
 }

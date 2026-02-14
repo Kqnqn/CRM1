@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { supabase, Account, Contact, Opportunity } from '@/lib/supabase/client';
+import { supabase, Account, Contact } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
 import { RecordHeader } from '@/components/shared/record-header';
 import { RecordTabs } from '@/components/shared/record-tabs';
@@ -41,6 +41,8 @@ import { DocumentsTab } from '@/components/accounts/documents-tab';
 import { OrdersTab } from '@/components/accounts/orders-tab';
 import { FollowUpSection } from '@/components/accounts/followup-section';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { Tag as TagIcon } from 'lucide-react';
+import { TagInput } from '@/components/ui/tag-input';
 
 const stageColors: Record<string, any> = {
   OPEN: 'default',
@@ -54,7 +56,6 @@ export default function AccountDetailPage() {
   const { profile, user } = useAuth();
   const [account, setAccount] = useState<Account | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState<any>({});
@@ -71,25 +72,22 @@ export default function AccountDetailPage() {
       .maybeSingle();
 
     if (data && !error) {
-      setAccount(data);
-      setFormData(data);
+      const normalizedData = {
+        ...data,
+        tags: data.tags || [],
+      };
+      setAccount(normalizedData);
+      setFormData(normalizedData);
     }
   };
 
   const fetchRelated = async () => {
-    const [contactsRes, oppsRes] = await Promise.all([
-      supabase
-        .from('contacts')
-        .select('*, owner:profiles!contacts_owner_id_fkey(*)')
-        .eq('account_id', params.id),
-      supabase
-        .from('opportunities')
-        .select('*, owner:profiles!opportunities_owner_id_fkey(*)')
-        .eq('account_id', params.id),
-    ]);
+    const { data } = await supabase
+      .from('contacts')
+      .select('*, owner:profiles!contacts_owner_id_fkey(*)')
+      .eq('account_id', params.id);
 
-    if (contactsRes.data) setContacts(contactsRes.data);
-    if (oppsRes.data) setOpportunities(oppsRes.data);
+    if (data) setContacts(data);
   };
 
   useEffect(() => {
@@ -102,7 +100,7 @@ export default function AccountDetailPage() {
   }, [params.id]);
 
   const handleUpdate = async () => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('accounts')
       .update({
         name: formData.name,
@@ -114,12 +112,23 @@ export default function AccountDetailPage() {
         country: formData.country,
         phone: formData.phone,
         website: formData.website,
+        tags: formData.tags || [],
       })
-      .eq('id', params.id);
+      .eq('id', params.id)
+      .select('*, owner:profiles!accounts_owner_id_fkey(*)')
+      .single();
 
-    if (!error) {
+    if (!error && data) {
+      const normalizedData = {
+        ...data,
+        tags: data.tags || [],
+      };
+      setAccount(normalizedData);
+      setFormData(normalizedData);
       setEditing(false);
-      fetchAccount();
+    } else if (error) {
+      console.error('Error updating account:', error);
+      alert('Error updating account: ' + error.message);
     }
   };
 
@@ -385,6 +394,31 @@ export default function AccountDetailPage() {
                         <p className="text-gray-900">{account.country || '-'}</p>
                       )}
                     </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <Label className="flex items-center gap-2">
+                        <TagIcon className="h-4 w-4" />
+                        Oznake
+                      </Label>
+                      {editing ? (
+                        <TagInput
+                          tags={formData.tags || []}
+                          onChange={(tags) => setFormData({ ...formData, tags })}
+                        />
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {account.tags && account.tags.length > 0 ? (
+                            account.tags.map((tag) => (
+                              <Badge key={tag} variant="soft" className="bg-primary/10 text-primary border-primary/20">
+                                {tag}
+                              </Badge>
+                            ))
+                          ) : (
+                            <p className="text-muted-foreground text-sm">-</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {editing && (
@@ -446,53 +480,6 @@ export default function AccountDetailPage() {
                     )}
                   </CardContent>
                 </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-medium">{t('opportunities.title')}</h3>
-                      <Button size="sm" onClick={() => router.push(`/app/opportunities/new?accountId=${params.id}`)}>
-                        <Plus className="h-4 w-4 mr-1" />
-                        {t('opportunities.new_opportunity')}
-                      </Button>
-                    </div>
-                    {opportunities.length === 0 ? (
-                      <p className="text-gray-500 text-center py-4">{t('opportunities.no_opportunities')}</p>
-                    ) : (
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>{t('common.name')}</TableHead>
-                            <TableHead>{t('accounts.table.stage')}</TableHead>
-                            <TableHead>{t('common.amount')}</TableHead>
-                            <TableHead>{t('opportunities.table.close_date')}</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {opportunities.map((opp) => (
-                            <TableRow key={opp.id}>
-                              <TableCell>
-                                <Link
-                                  href={`/app/opportunities/${opp.id}`}
-                                  className="text-blue-600 hover:underline"
-                                >
-                                  {opp.name}
-                                </Link>
-                              </TableCell>
-                              <TableCell>
-                                <Badge>{t(`${opp.stage.toLowerCase().startsWith('closed') ? 'stage' : 'stage'}.${opp.stage.toLowerCase()}`)}</Badge>
-                              </TableCell>
-                              <TableCell>{formatCurrency(opp.amount || 0)}</TableCell>
-                              <TableCell>
-                                {opp.close_date ? new Date(opp.close_date).toLocaleDateString() : '-'}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    )}
-                  </CardContent>
-                </Card>
               </div>
             ),
           },
@@ -519,7 +506,7 @@ export default function AccountDetailPage() {
         ]}
       />
 
-      <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
+      < Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog} >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t('accounts.close_account')}</DialogTitle>
@@ -560,7 +547,7 @@ export default function AccountDetailPage() {
             </div>
           </div>
         </DialogContent>
-      </Dialog>
-    </div>
+      </Dialog >
+    </div >
   );
 }

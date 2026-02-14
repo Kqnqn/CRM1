@@ -26,12 +26,6 @@ export default function ReportsPage() {
     leadsByStatus: {} as Record<string, number>,
     totalAccounts: 0,
     accountsByStage: {} as Record<string, number>,
-    totalOpportunities: 0,
-    opportunitiesByStage: {} as Record<string, number>,
-    totalRevenue: 0,
-    wonRevenue: 0,
-    lostRevenue: 0,
-    pipelineValue: 0,
   });
   const [users, setUsers] = useState<Array<{ id: string; full_name: string; email: string }>>([]);
   const [loading, setLoading] = useState(true);
@@ -58,12 +52,11 @@ export default function ReportsPage() {
 
       const viewAll = canViewAll(profile.role);
       const userId = user?.id;
-      const filterOwnerId = filters.ownerId || userId;
 
-      const [leadsRes, accountsRes, oppsRes] = await Promise.all([
+      const [leadsRes, accountsRes] = await Promise.all([
         supabase
           .from('leads')
-          .select('status')
+          .select('status, owner_id')
           .then((res) => {
             if (!viewAll && res.data) {
               return { data: res.data.filter((l: any) => l.owner_id === userId) };
@@ -72,19 +65,10 @@ export default function ReportsPage() {
           }),
         supabase
           .from('accounts')
-          .select('stage')
+          .select('stage, owner_id')
           .then((res) => {
             if (!viewAll && res.data) {
               return { data: res.data.filter((a: any) => a.owner_id === userId) };
-            }
-            return res;
-          }),
-        supabase
-          .from('opportunities')
-          .select('stage, amount')
-          .then((res) => {
-            if (!viewAll && res.data) {
-              return { data: res.data.filter((o: any) => o.owner_id === userId) };
             }
             return res;
           }),
@@ -100,35 +84,11 @@ export default function ReportsPage() {
         accountsByStage[account.stage] = (accountsByStage[account.stage] || 0) + 1;
       });
 
-      const opportunitiesByStage: Record<string, number> = {};
-      let wonRevenue = 0;
-      let lostRevenue = 0;
-      let pipelineValue = 0;
-
-      oppsRes.data?.forEach((opp: any) => {
-        opportunitiesByStage[opp.stage] = (opportunitiesByStage[opp.stage] || 0) + 1;
-        const amount = parseFloat(opp.amount) || 0;
-
-        if (opp.stage === 'CLOSED_WON') {
-          wonRevenue += amount;
-        } else if (opp.stage === 'CLOSED_LOST') {
-          lostRevenue += amount;
-        } else {
-          pipelineValue += amount;
-        }
-      });
-
       setStats({
         totalLeads: leadsRes.data?.length || 0,
         leadsByStatus,
         totalAccounts: accountsRes.data?.length || 0,
         accountsByStage,
-        totalOpportunities: oppsRes.data?.length || 0,
-        opportunitiesByStage,
-        totalRevenue: wonRevenue + lostRevenue,
-        wonRevenue,
-        lostRevenue,
-        pipelineValue,
       });
 
       setLoading(false);
@@ -137,20 +97,49 @@ export default function ReportsPage() {
     fetchStats();
   }, [profile, user, filters]);
 
-  const exportToCSV = () => {
-    const rows: string[] = [];
+  const [exportingPdf, setExportingPdf] = useState(false);
 
+  const exportToPDF = async () => {
+    try {
+      setExportingPdf(true);
+      const response = await fetch('/api/reports/export-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          stats,
+          filters,
+          profile,
+          date: new Date().toLocaleDateString(),
+        }),
+      });
+
+      if (!response.ok) throw new Error('PDF generation failed');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `report-${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      alert(t('reports.export_error') || 'Failed to export PDF');
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
+  const exportToCSV = () => {
+    // ... existing CSV logic ...
+    const rows: string[] = [];
     rows.push('Report Type,Category,Value');
 
     rows.push('');
     rows.push('SUMMARY');
     rows.push(`Total Leads,,${stats.totalLeads}`);
     rows.push(`Total Accounts,,${stats.totalAccounts}`);
-    rows.push(`Total Opportunities,,${stats.totalOpportunities}`);
-    rows.push(`Won Revenue,,$${stats.wonRevenue}`);
-    rows.push(`Lost Revenue,,$${stats.lostRevenue}`);
-    rows.push(`Pipeline Value,,$${stats.pipelineValue}`);
-    rows.push(`Win Rate,,${stats.totalRevenue > 0 ? ((stats.wonRevenue / stats.totalRevenue) * 100).toFixed(1) : 0}%`);
 
     rows.push('');
     rows.push('LEADS BY STATUS');
@@ -162,12 +151,6 @@ export default function ReportsPage() {
     rows.push('ACCOUNTS BY STAGE');
     Object.entries(stats.accountsByStage).forEach(([stage, count]) => {
       rows.push(`Accounts,${stage},${count}`);
-    });
-
-    rows.push('');
-    rows.push('OPPORTUNITIES BY STAGE');
-    Object.entries(stats.opportunitiesByStage).forEach(([stage, count]) => {
-      rows.push(`Opportunities,${stage},${count}`);
     });
 
     const csvContent = rows.join('\n');
@@ -198,9 +181,17 @@ export default function ReportsPage() {
             <Filter className="h-4 w-4 mr-2" />
             {showFilters ? t('reports.hide_filters') : t('reports.show_filters')} {t('reports.filters')}
           </Button>
-          <Button onClick={exportToCSV}>
+          <Button variant="outline" onClick={exportToCSV}>
             <Download className="h-4 w-4 mr-2" />
-            {t('reports.export_csv')}
+            CSV
+          </Button>
+          <Button onClick={exportToPDF} disabled={exportingPdf}>
+            {exportingPdf ? (
+              <span className="animate-spin mr-2">⏳</span>
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            PDF
           </Button>
         </div>
       </div>
@@ -262,7 +253,7 @@ export default function ReportsPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -290,43 +281,9 @@ export default function ReportsPage() {
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{t('reports.open_opportunities')}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {stats.totalOpportunities -
-                    (stats.opportunitiesByStage['CLOSED_WON'] || 0) -
-                    (stats.opportunitiesByStage['CLOSED_LOST'] || 0)}
-                </p>
-              </div>
-              <div className="bg-purple-50 p-3 rounded-lg">
-                <Target className="h-6 w-6 text-purple-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{t('reports.pipeline_value')}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {formatCurrency(stats.pipelineValue)}
-                </p>
-              </div>
-              <div className="bg-orange-50 p-3 rounded-lg">
-                <DollarSign className="h-6 w-6 text-orange-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <Card>
           <CardHeader>
             <CardTitle>{t('reports.leads_by_status')}</CardTitle>
@@ -361,55 +318,6 @@ export default function ReportsPage() {
               {Object.keys(stats.accountsByStage).length === 0 && (
                 <p className="text-center text-muted-foreground py-4">{t('reports.no_accounts_data')}</p>
               )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('reports.opportunities_by_stage')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {Object.entries(stats.opportunitiesByStage).map(([stage, count]) => (
-                <div key={stage} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">{t(`stage.${stage.toLowerCase()}`)}</span>
-                  <span className="text-lg font-semibold text-foreground">{count}</span>
-                </div>
-              ))}
-              {Object.keys(stats.opportunitiesByStage).length === 0 && (
-                <p className="text-center text-muted-foreground py-4">{t('reports.no_opportunities_data')}</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('reports.revenue_overview')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">{t('reports.won_revenue')}</p>
-                <p className="text-2xl font-bold text-green-500 mt-1">
-                  {formatCurrency(stats.wonRevenue)}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">{t('reports.lost_revenue')}</p>
-                <p className="text-2xl font-bold text-red-600 mt-1">
-                  {formatCurrency(stats.lostRevenue)}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">{t('reports.win_rate')}</p>
-                <p className="text-2xl font-bold text-blue-600 mt-1">
-                  {stats.totalRevenue > 0
-                    ? `${((stats.wonRevenue / stats.totalRevenue) * 100).toFixed(1)}%`
-                    : '0%'}
-                </p>
-              </div>
             </div>
           </CardContent>
         </Card>

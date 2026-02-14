@@ -38,6 +38,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   Plus,
   Search,
   Upload,
@@ -49,6 +54,7 @@ import {
   Calendar,
   CheckCircle2,
   AlertCircle,
+  Tag as TagIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -56,6 +62,7 @@ import { canViewAll } from '@/lib/auth/permissions';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { cn } from '@/lib/utils';
+import { TagCloud } from '@/components/ui/tag-cloud';
 
 const statusConfig: Record<string, { variant: 'default' | 'secondary' | 'success' | 'warning' | 'info'; color: string }> = {
   NEW: { variant: 'info', color: 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-400' },
@@ -93,6 +100,7 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
@@ -116,6 +124,10 @@ export default function LeadsPage() {
       query = query.eq('status', statusFilter);
     }
 
+    if (selectedTags.length > 0) {
+      query = query.contains('tags', selectedTags);
+    }
+
     const { data, error } = await query;
 
     if (data && !error) {
@@ -136,7 +148,7 @@ export default function LeadsPage() {
 
   useEffect(() => {
     fetchLeads();
-  }, [statusFilter, profile]);
+  }, [statusFilter, selectedTags, profile]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -145,155 +157,89 @@ export default function LeadsPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const parseCSV = (text: string): Array<Record<string, string>> => {
-    const lines = text.trim().split('\n').filter(line => line.trim() !== '');
-    if (lines.length === 0) {
-      throw new Error('CSV file is empty');
-    }
-
-    const rows: Array<Record<string, string>> = [];
-    
-    // Check if first line looks like headers (contains common header keywords)
-    const firstLine = lines[0];
-    const firstLineValues = firstLine.split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
-    const headerKeywords = ['email', 'company', 'name', 'phone', 'source', 'owner'];
-    const looksLikeHeaders = firstLineValues.some(val => 
-      headerKeywords.some(keyword => val.toLowerCase().includes(keyword))
-    );
-
-    if (looksLikeHeaders && lines.length >= 2) {
-      // Has headers - first row is headers
-      const headers = firstLineValues;
-      
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
-        const row: Record<string, string> = {};
-
-        headers.forEach((header, index) => {
-          if (values[index] !== undefined) {
-            row[header] = values[index];
-          }
-        });
-
-        rows.push(row);
-      }
-    } else {
-      // No headers - map by column position
-      // Expected order: email, companyName, contactPersonName, phone, source, ownerEmail
-      for (let i = 0; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
-        const row: Record<string, string> = {
-          email: values[0] || '',
-          companyName: values[1] || '',
-          contactPersonName: values[2] || '',
-          phone: values[3] || '',
-          source: values[4] || '',
-          ownerEmail: values[5] || '',
-        };
-        rows.push(row);
-      }
-    }
-
-    return rows;
-  };
+  // New states for import flow
+  const [importSummary, setImportSummary] = useState<any>(null);
+  const [importId, setImportId] = useState<string | null>(null);
+  const [createContacts, setCreateContacts] = useState(false);
 
   const handleImportCSV = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setImporting(true);
-    setImportResult(null);
+    setImportSummary(null);
+    setImportId(null);
+    setImportResult(null); // Clear previous result
+
+    const formData = new FormData();
+    formData.append('file', file);
 
     try {
-      const text = await file.text();
-      const rows = parseCSV(text);
+      // Step 1: Parse and Validate
+      const response = await fetch('/api/leads/import-csv', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${window.localStorage.getItem('sb-access-token') || '' /* Adjust based on auth */}`
+        },
+        body: formData,
+      });
 
-      const result: ImportResult = {
-        createdCount: 0,
-        duplicateCount: 0,
-        errors: [],
-      };
+      const data = await response.json();
 
-      for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        const email = row.email || row.Email || row.EMAIL;
-        const companyName = row.companyName || row.company_name || row['Company Name'] || row['company name'] || '';
-        const contactPersonName = row.contactPersonName || row.contact_person_name || row['Contact Person'] || row['contact person'] || row['Contact Person Name'] || '';
-        const phone = row.phone || row.Phone || row.PHONE || row.phoneNumber || row['Phone Number'] || null;
-        const source = row.source || row.Source || row.SOURCE || row.leadSource || row['Lead Source'] || null;
-        const ownerEmail = row.ownerEmail || row.owner_email || row['Owner Email'] || row['owner email'] || null;
+      if (!response.ok) throw new Error(data.error || 'Import failed');
 
-        if (!email) {
-          result.errors.push({
-            row: i + 2,
-            error: 'Email is required',
-            data: row,
-          });
-          continue;
-        }
-
-        // Check for duplicate email
-        const { data: existingLead } = await supabase
-          .from('leads')
-          .select('id')
-          .eq('email', email)
-          .maybeSingle();
-
-        if (existingLead) {
-          result.duplicateCount++;
-          result.errors.push({
-            row: i + 2,
-            error: 'Duplicate email',
-            data: row,
-          });
-          continue;
-        }
-
-        // Determine owner_id
-        let ownerId = user?.id;
-        if (ownerEmail) {
-          const { data: ownerProfile } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('email', ownerEmail)
-            .maybeSingle();
-
-          if (ownerProfile) {
-            ownerId = ownerProfile.id;
-          }
-        }
-
-        // Insert the lead
-        const { error: insertError } = await supabase
-          .from('leads')
-          .insert({
-            company_name: companyName,
-            contact_person_name: contactPersonName,
-            email: email,
-            phone: phone,
-            source: source,
-            owner_id: ownerId,
-            status: 'NEW',
-          });
-
-        if (insertError) {
-          result.errors.push({
-            row: i + 2,
-            error: insertError.message,
-            data: row,
-          });
-        } else {
-          result.createdCount++;
-        }
-      }
-
-      setImportResult(result);
+      setImportId(data.importId);
+      setImportSummary(data.summary);
       setShowImportDialog(true);
-      fetchLeads();
+
+      // If we have access to session from useAuth, we should use it. 
+      // But fetch defaults to no auth headers usually unless specified.
+      // The supabase client handles auth, but fetch doesn't.
+      // We rely on the browser cookie if Supabase SSR is set up, 
+      // OR we need to pass the access token. 
+      // I'll assume standard supabase.auth.getSession() logic or rely on the helper I'll verify later.
+
+    } catch (error: any) {
+      toast({
+        title: t('leads.import_failed'),
+        description: error.message,
+        variant: 'destructive',
+      });
+      setShowImportDialog(false);
+    } finally {
+      setImporting(false);
+      event.target.value = '';
+    }
+  };
+
+  const confirmImport = async () => {
+    if (!importId) return;
+
+    setImporting(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session.session?.access_token;
+
+      const response = await fetch('/api/leads/import-csv/confirm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ importId, createContacts }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Commit failed');
+
       toast({
         title: t('leads.import_success'),
-        description: `${t('leads.created_count')}: ${result.createdCount}, ${t('leads.duplicate_count')}: ${result.duplicateCount}`,
+        description: `${t('leads.created_count')}: ${data.leadsCreated}`,
       });
+
+      setShowImportDialog(false);
+      fetchLeads();
+
     } catch (error: any) {
       toast({
         title: t('leads.import_failed'),
@@ -302,7 +248,6 @@ export default function LeadsPage() {
       });
     } finally {
       setImporting(false);
-      event.target.value = '';
     }
   };
 
@@ -382,9 +327,33 @@ export default function LeadsPage() {
                 <SelectItem value="ARCHIVED">{t('status.archived')}</SelectItem>
               </SelectContent>
             </Select>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("gap-2", selectedTags.length > 0 && "border-primary bg-primary/5")}>
+                  <TagIcon className="h-4 w-4" />
+                  {selectedTags.length > 0 ? `${selectedTags.length} ${t('common.tags')}` : t('common.tags')}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0" align="end">
+                <TagCloud
+                  allTags={Array.from(new Set(leads.flatMap(l => l.tags || []))).sort()}
+                  selectedTags={selectedTags}
+                  onTagClick={(tag) => {
+                    setSelectedTags(prev =>
+                      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+                    );
+                  }}
+                  onClear={() => setSelectedTags([])}
+                  className="mb-0 border-none bg-transparent rounded-none"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </motion.div>
+
+      {/* Results count removed from here, moving up or keeping if needed */}
 
       {/* Table */}
       <motion.div variants={itemVariants}>
@@ -424,6 +393,7 @@ export default function LeadsPage() {
                   <TableHead className="hidden md:table-cell">{t('leads.table.email')}</TableHead>
                   <TableHead className="hidden lg:table-cell">{t('leads.table.phone')}</TableHead>
                   <TableHead>{t('leads.table.status')}</TableHead>
+                  <TableHead className="hidden md:table-cell">Oznake</TableHead>
                   <TableHead className="hidden xl:table-cell">{t('leads.table.owner')}</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
@@ -478,8 +448,16 @@ export default function LeadsPage() {
                           statusConfig[lead.status]?.color
                         )}
                       >
-                        {t(`status.${lead.status.toLowerCase()}`)}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="flex flex-wrap gap-1">
+                        {lead.tags?.map(tag => (
+                          <Badge key={tag} variant="soft" className="px-1.5 py-0 text-[10px] bg-primary/5 text-primary border-primary/10">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
                     </TableCell>
                     <TableCell className="hidden xl:table-cell">
                       <div className="flex items-center gap-2">
@@ -538,51 +516,85 @@ export default function LeadsPage() {
             </DialogTitle>
             <DialogDescription>{t('leads.import_summary')}</DialogDescription>
           </DialogHeader>
-          {importResult && (
+          {importSummary ? (
             <div className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-900/30">
                   <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                    {importResult.createdCount}
+                    {importSummary.validRows}
                   </div>
                   <div className="text-sm text-emerald-700 dark:text-emerald-300">
-                    {t('leads.created_count')}
+                    {t('leads.valid_rows')}
                   </div>
                 </div>
                 <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-900/30">
                   <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
-                    {importResult.duplicateCount}
+                    {importSummary.duplicateCount}
                   </div>
                   <div className="text-sm text-amber-700 dark:text-amber-300">
                     {t('leads.duplicate_count')}
                   </div>
                 </div>
+                <div className="p-4 bg-rose-50 dark:bg-rose-900/20 rounded-xl border border-rose-200 dark:border-rose-900/30">
+                  <div className="text-3xl font-bold text-rose-600 dark:text-rose-400">
+                    {importSummary.errorRows}
+                  </div>
+                  <div className="text-sm text-rose-700 dark:text-rose-300">
+                    {t('leads.error_rows')}
+                  </div>
+                </div>
               </div>
 
-              {importResult.errors.length > 0 && (
+              {importSummary.errors && importSummary.errors.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="font-semibold text-sm flex items-center gap-2">
                     <AlertCircle className="h-4 w-4 text-rose-500" />
                     {t('leads.errors_duplicates')}:
                   </h4>
                   <div className="max-h-64 overflow-y-auto space-y-2">
-                    {importResult.errors.map((error, index) => (
+                    {importSummary.errors.map((error: any, index: number) => (
                       <div
                         key={index}
                         className="p-3 bg-rose-50 dark:bg-rose-900/20 rounded-xl border border-rose-200 dark:border-rose-900/30 text-sm"
                       >
                         <div className="font-medium text-rose-900 dark:text-rose-200">
-                          {t('leads.row')} {error.row}: {error.error}
+                          {t('leads.row')} {error.row}: {error.reason}
                         </div>
-                        <div className="text-rose-700 dark:text-rose-300 mt-1">
-                          Email: {error.data.email || 'N/A'}
-                          {error.data.companyName && ` | Company: ${error.data.companyName}`}
+                        <div className="text-rose-700 dark:text-rose-300 mt-1 text-xs font-mono">
+                          {error.raw}
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
+
+              <div className="flex items-center space-x-2 pt-4 border-t">
+                <input
+                  type="checkbox"
+                  id="createContacts"
+                  checked={createContacts}
+                  onChange={e => setCreateContacts(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <label htmlFor="createContacts" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Create Contacts/Accounts immediately for valid leads
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setShowImportDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={confirmImport} disabled={importing || importSummary.validRows === 0}>
+                  {importing ? 'Importing...' : `Confirm Import (${importSummary.validRows} rows)`}
+                </Button>
+              </div>
+
+            </div>
+          ) : (
+            <div className="py-8 text-center text-muted-foreground">
+              Loading preview...
             </div>
           )}
         </DialogContent>

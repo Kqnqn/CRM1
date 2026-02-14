@@ -16,9 +16,10 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Tag as TagIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { TagInput } from '@/components/ui/tag-input';
 
 export default function NewLeadPage() {
   const router = useRouter();
@@ -34,6 +35,7 @@ export default function NewLeadPage() {
     phone: '',
     source: '',
     status: 'NEW',
+    tags: [] as string[],
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,8 +44,29 @@ export default function NewLeadPage() {
     setLoading(true);
 
     try {
+      // Create contact first
+      const [firstName, ...lastNameParts] = formData.contact_person_name.trim().split(/\s+/);
+      const lastName = lastNameParts.join(' ') || 'Unknown';
+
+      const { data: contactData, error: contactError } = await supabase
+        .from('contacts')
+        .insert({
+          first_name: firstName,
+          last_name: lastName,
+          email: formData.email,
+          phone: formData.phone,
+          owner_id: user?.id,
+        })
+        .select()
+        .single();
+
+      if (contactError) throw contactError;
+
+      // Create lead linked to contact
       const { error: insertError } = await supabase.from('leads').insert({
         ...formData,
+        contact_id: contactData.id,
+        tags: formData.tags || [],
         owner_id: user?.id,
       });
 
@@ -157,6 +180,18 @@ export default function NewLeadPage() {
                     <SelectItem value="QUALIFIED">{t('status.qualified')}</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label className="flex items-center gap-2">
+                  <TagIcon className="h-4 w-4" />
+                  Oznake
+                </Label>
+                <TagInput
+                  tags={formData.tags}
+                  onChange={(tags) => setFormData({ ...formData, tags })}
+                  placeholder="Dodaj oznaku..."
+                />
               </div>
             </div>
 

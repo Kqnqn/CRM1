@@ -15,6 +15,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { canUpdate, canDelete } from '@/lib/auth/permissions';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
+import { auditLogger } from '@/lib/audit/audit-logger';
+import { EntityHistory } from '@/components/shared/entity-history';
 
 export default function ContactDetailPage() {
   const params = useParams();
@@ -59,17 +62,29 @@ export default function ContactDetailPage() {
       .eq('id', params.id);
 
     if (!error) {
+      await auditLogger.logChange('CONTACT', params.id as string, 'UPDATE', 'Details', 'Previous Details', 'Updated Details');
       setEditing(false);
       fetchContact();
     }
   };
 
+  const { toast } = useToast(); // Ensure hook is called
+
   const handleDelete = async () => {
     if (!confirm(t('common.delete_confirm_record'))) return;
 
-    const { error } = await supabase.from('contacts').delete().eq('id', params.id);
+
+    const { error } = await supabase
+      .from('contacts')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', params.id);
 
     if (!error) {
+      await auditLogger.logChange('CONTACT', params.id as string, 'DELETE', 'Status', 'Active', 'Deleted');
+      toast({
+        title: t('message.contact_deleted'),
+        description: t('message.contact_deleted_desc')
+      });
       router.push('/app/contacts');
     }
   };
@@ -216,6 +231,11 @@ export default function ContactDetailPage() {
             label: t('common.activity'),
             value: 'activity',
             content: <ActivityTimeline relatedToType="CONTACT" relatedToId={params.id as string} />,
+          },
+          {
+            label: 'History',
+            value: 'history',
+            content: <EntityHistory entityType="CONTACT" entityId={params.id as string} />,
           },
         ]}
       />

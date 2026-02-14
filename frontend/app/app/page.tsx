@@ -13,8 +13,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Users,
   Building2,
-  Target,
-  TrendingUp,
   CheckCircle2,
   AlertCircle,
   DollarSign,
@@ -70,11 +68,9 @@ interface OpportunityStats {
 interface Stats {
   totalLeads: number;
   totalAccounts: number;
-  totalOpportunities: number;
   totalRevenue: number;
   winRate: number;
   leadsByStatus: LeadStats[];
-  opportunitiesByStage: OpportunityStats[];
 }
 
 const containerVariants = {
@@ -236,11 +232,9 @@ export default function HomePage() {
   const [stats, setStats] = useState<Stats>({
     totalLeads: 0,
     totalAccounts: 0,
-    totalOpportunities: 0,
     totalRevenue: 0,
     winRate: 0,
     leadsByStatus: [],
-    opportunitiesByStage: [],
   });
   const [loading, setLoading] = useState(true);
 
@@ -284,7 +278,6 @@ export default function HomePage() {
         ordersRes,
         accountsRes,
         leadsRes,
-        opportunitiesRes,
         servicesRes,
       ] = await Promise.all([
         supabase
@@ -308,20 +301,17 @@ export default function HomePage() {
           ? supabase.from('leads').select('status')
           : supabase.from('leads').select('status').eq('owner_id', user.id),
         isAdmin
-          ? supabase.from('opportunities').select('stage, amount')
-          : supabase.from('opportunities').select('stage, amount').eq('owner_id', user.id),
-        isAdmin
           ? supabase
-              .from('service_contracts')
-              .select('id, device_type, next_service_due_at, status, account:accounts(name)')
-              .eq('status', 'ACTIVE')
-              .order('next_service_due_at', { ascending: true })
+            .from('service_contracts')
+            .select('id, device_type, next_service_due_at, status, account:accounts(name)')
+            .eq('status', 'ACTIVE')
+            .order('next_service_due_at', { ascending: true })
           : supabase
-              .from('service_contracts')
-              .select('id, device_type, next_service_due_at, status, account:accounts(name)')
-              .eq('status', 'ACTIVE')
-              .eq('assigned_to_id', user.id)
-              .order('next_service_due_at', { ascending: true }),
+            .from('service_contracts')
+            .select('id, device_type, next_service_due_at, status, account:accounts(name)')
+            .eq('status', 'ACTIVE')
+            .eq('assigned_to_id', user.id)
+            .order('next_service_due_at', { ascending: true }),
       ]);
 
       if (openTasksRes.data) setOpenTasks(openTasksRes.data);
@@ -334,7 +324,7 @@ export default function HomePage() {
           { outstanding: number; count: number; currency: string }
         >();
 
-        ordersRes.data.forEach((order) => {
+        ordersRes.data.forEach((order: any) => {
           const outstanding = Number(order.amount) - Number(order.paid_amount);
           if (outstanding > 0) {
             const current = accountTotals.get(order.account_id) || {
@@ -368,35 +358,10 @@ export default function HomePage() {
 
       const leadsByStatus = new Map<string, number>();
       if (leadsRes.data) {
-        leadsRes.data.forEach((lead) => {
+        leadsRes.data.forEach((lead: any) => {
           leadsByStatus.set(lead.status, (leadsByStatus.get(lead.status) || 0) + 1);
         });
       }
-
-      const oppsByStage = new Map<string, { count: number; amount: number }>();
-      let wonCount = 0;
-      let lostCount = 0;
-      let totalRevenue = 0;
-
-      if (opportunitiesRes.data) {
-        opportunitiesRes.data.forEach((opp) => {
-          const current = oppsByStage.get(opp.stage) || { count: 0, amount: 0 };
-          oppsByStage.set(opp.stage, {
-            count: current.count + 1,
-            amount: current.amount + Number(opp.amount || 0),
-          });
-
-          if (opp.stage === 'CLOSED_WON') {
-            wonCount++;
-            totalRevenue += Number(opp.amount || 0);
-          } else if (opp.stage === 'CLOSED_LOST') {
-            lostCount++;
-          }
-        });
-      }
-
-      const winRate =
-        wonCount + lostCount > 0 ? (wonCount / (wonCount + lostCount)) * 100 : 0;
 
       if (servicesRes.data) {
         const dueSoon: ServiceDue[] = [];
@@ -429,17 +394,11 @@ export default function HomePage() {
       setStats({
         totalLeads: leadsRes.data?.length || 0,
         totalAccounts: accountsRes.data?.length || 0,
-        totalOpportunities: opportunitiesRes.data?.length || 0,
-        totalRevenue,
-        winRate,
+        totalRevenue: 0,
+        winRate: 0,
         leadsByStatus: Array.from(leadsByStatus.entries()).map(([status, count]) => ({
           status,
           count,
-        })),
-        opportunitiesByStage: Array.from(oppsByStage.entries()).map(([stage, data]) => ({
-          stage,
-          count: data.count,
-          total_amount: data.amount,
         })),
       });
 
@@ -447,7 +406,7 @@ export default function HomePage() {
     };
 
     fetchData();
-  }, [user, profile]);
+  }, [user, profile, t, formatCurrency]);
 
   const handleMarkComplete = async (taskId: string) => {
     await supabase
@@ -497,15 +456,7 @@ export default function HomePage() {
       </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard
-          title={t('dashboard.total_leads')}
-          value={stats.totalLeads}
-          icon={Users}
-          href="/app/leads"
-          color="bg-blue-500"
-          delay={0}
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <StatCard
           title={t('dashboard.total_accounts')}
           value={stats.totalAccounts}
@@ -515,18 +466,17 @@ export default function HomePage() {
           delay={0.1}
         />
         <StatCard
-          title={t('dashboard.open_opportunities')}
-          value={stats.totalOpportunities}
-          icon={Target}
-          href="/app/opportunities"
-          color="bg-violet-500"
+          title={t('dashboard.total_leads')}
+          value={stats.totalLeads}
+          icon={Users}
+          href="/app/leads"
+          color="bg-blue-500"
           delay={0.2}
         />
         <StatCard
-          title={t('dashboard.win_rate')}
-          value={`${stats.winRate.toFixed(0)}%`}
-          icon={TrendingUp}
-          trend="+5% from last month"
+          title={t('dashboard.total_revenue') || 'Ukupan Prihod'}
+          value={formatCurrency(stats.totalRevenue)}
+          icon={DollarSign}
           color="bg-amber-500"
           delay={0.3}
         />
@@ -566,8 +516,8 @@ export default function HomePage() {
                           item.status === 'CONVERTED'
                             ? 'success'
                             : item.status === 'QUALIFIED'
-                            ? 'info'
-                            : 'secondary'
+                              ? 'info'
+                              : 'secondary'
                         }
                         className="min-w-[80px] justify-center"
                       >
@@ -585,64 +535,13 @@ export default function HomePage() {
                             item.status === 'CONVERTED'
                               ? 'bg-emerald-500'
                               : item.status === 'QUALIFIED'
-                              ? 'bg-primary'
-                              : 'bg-muted-foreground'
+                                ? 'bg-primary'
+                                : 'bg-muted-foreground'
                           )}
                         />
                       </div>
                       <span className="text-sm font-semibold w-8 text-right">{item.count}</span>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-violet-500" />
-              {t('dashboard.opportunities_by_stage')}
-            </CardTitle>
-            <CardDescription>{t('dashboard.opportunities_by_stage_desc')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats.opportunitiesByStage.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-3">
-                  <Target className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <p className="text-sm text-muted-foreground">{t('dashboard.no_opportunities')}</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {stats.opportunitiesByStage.map((item, index) => (
-                  <motion.div
-                    key={item.stage}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Badge
-                        variant={
-                          item.stage === 'CLOSED_WON'
-                            ? 'success'
-                            : item.stage === 'CLOSED_LOST'
-                            ? 'error'
-                            : 'info'
-                        }
-                        className="min-w-[100px] justify-center"
-                      >
-                        {t(`stage.${item.stage.toLowerCase()}`)}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">({item.count})</span>
-                    </div>
-                    <span className="text-sm font-semibold">
-                      {formatCurrency(item.total_amount)}
-                    </span>
                   </motion.div>
                 ))}
               </div>

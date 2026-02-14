@@ -1,6 +1,8 @@
 {
-  "/page": "app/page.js",
-  "/app/page": "app/app/page.js",
+  "/app/files/page": "app/app/files/page.js",
+  "/app/accounts/page": "app/app/accounts/page.js",
   "/app/leads/page": "app/app/leads/page.js",
-  "/app/leads/new/page": "app/app/leads/new/page.js"
+  "/app/activities/page": "app/app/activities/page.js",
+  "/app/accounts/[id]/page": "app/app/accounts/[id]/page.js",
+  "/app/leads/[id]/page": "app/app/leads/[id]/page.js"
 }

@@ -8,9 +8,12 @@ import { RecordHeader } from '@/components/shared/record-header';
 import { RecordTabs } from '@/components/shared/record-tabs';
 import { ActivityTimeline } from '@/components/shared/activity-timeline';
 import { DocumentsTab } from '@/components/accounts/documents-tab';
+import { TagInput } from '@/components/ui/tag-input';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tag as TagIcon, X } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -58,8 +61,12 @@ export default function LeadDetailPage() {
       .maybeSingle();
 
     if (data && !error) {
-      setLead(data);
-      setFormData(data);
+      const normalizedData = {
+        ...data,
+        tags: data.tags || [],
+      };
+      setLead(normalizedData);
+      setFormData(normalizedData);
     }
     setLoading(false);
   };
@@ -69,7 +76,7 @@ export default function LeadDetailPage() {
   }, [params.id]);
 
   const handleUpdate = async () => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('leads')
       .update({
         company_name: formData.company_name,
@@ -78,12 +85,39 @@ export default function LeadDetailPage() {
         phone: formData.phone,
         source: formData.source,
         status: formData.status,
+        tags: formData.tags || [],
       })
-      .eq('id', params.id);
+      .eq('id', params.id)
+      .select('*, owner:profiles!leads_owner_id_fkey(*)')
+      .single();
 
-    if (!error) {
+    if (!error && data) {
+      // Sync with associated contact if exists
+      if (data.contact_id) {
+        const [firstName, ...lastNameParts] = formData.contact_person_name.trim().split(/\s+/);
+        const lastName = lastNameParts.join(' ') || 'Unknown';
+
+        await supabase
+          .from('contacts')
+          .update({
+            first_name: firstName,
+            last_name: lastName,
+            email: formData.email,
+            phone: formData.phone,
+          })
+          .eq('id', data.contact_id);
+      }
+
+      const normalizedData = {
+        ...data,
+        tags: data.tags || [],
+      };
+      setLead(normalizedData);
+      setFormData(normalizedData);
       setEditing(false);
-      fetchLead();
+    } else if (error) {
+      console.error('Error updating lead:', error);
+      alert('Error updating lead: ' + error.message);
     }
   };
 
@@ -97,43 +131,41 @@ export default function LeadDetailPage() {
     }
   };
 
-  const handleConvert = async (createOpportunity: boolean) => {
+  const handleConvert = async () => {
     const { data: accountData, error: accountError } = await supabase
       .from('accounts')
       .insert({
         name: lead?.company_name,
         phone: lead?.phone,
         owner_id: lead?.owner_id,
+        tags: lead?.tags || [],
       })
       .select()
       .single();
 
     if (accountError || !accountData) return;
 
-    const [firstName, ...lastNameParts] = lead?.contact_person_name.split(' ') || ['', ''];
-    const lastName = lastNameParts.join(' ') || 'Unknown';
+    if (lead?.contact_id) {
+      // Update existing contact to associate with new account
+      await supabase
+        .from('contacts')
+        .update({ account_id: accountData.id })
+        .eq('id', lead.contact_id);
+    } else {
+      // Fallback for leads created before this feature
+      const [firstName, ...lastNameParts] = lead?.contact_person_name.split(/\s+/) || ['', ''];
+      const lastName = lastNameParts.join(' ') || 'Unknown';
 
-    const { data: contactData } = await supabase
-      .from('contacts')
-      .insert({
-        account_id: accountData.id,
-        first_name: firstName,
-        last_name: lastName,
-        email: lead?.email,
-        phone: lead?.phone,
-        owner_id: lead?.owner_id,
-      })
-      .select()
-      .single();
-
-    if (createOpportunity) {
-      await supabase.from('opportunities').insert({
-        account_id: accountData.id,
-        contact_id: contactData?.id,
-        name: `${lead?.company_name} - Opportunity`,
-        stage: 'PROSPECTING',
-        owner_id: lead?.owner_id,
-      });
+      await supabase
+        .from('contacts')
+        .insert({
+          account_id: accountData.id,
+          first_name: firstName,
+          last_name: lastName,
+          email: lead?.email,
+          phone: lead?.phone,
+          owner_id: lead?.owner_id,
+        });
     }
 
     await supabase
@@ -322,6 +354,31 @@ export default function LeadDetailPage() {
                         <p className="text-foreground">{t(`status.${lead.status.toLowerCase()}`)}</p>
                       )}
                     </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <Label className="flex items-center gap-2">
+                        <TagIcon className="h-4 w-4" />
+                        Oznake
+                      </Label>
+                      {editing ? (
+                        <TagInput
+                          tags={formData.tags || []}
+                          onChange={(tags) => setFormData({ ...formData, tags })}
+                        />
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {lead.tags && lead.tags.length > 0 ? (
+                            lead.tags.map((tag) => (
+                              <Badge key={tag} variant="soft" className="bg-primary/10 text-primary border-primary/20">
+                                {tag}
+                              </Badge>
+                            ))
+                          ) : (
+                            <p className="text-muted-foreground text-sm">-</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {editing && (
@@ -358,10 +415,12 @@ export default function LeadDetailPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-3 mt-4">
-            <Button variant="outline" onClick={() => handleConvert(false)}>
-              {t('leads.convert_no_opp')}
+            <Button variant="outline" onClick={() => setShowConvertDialog(false)}>
+              {t('common.cancel')}
             </Button>
-            <Button onClick={() => handleConvert(true)}>{t('leads.convert_with_opp')}</Button>
+            <Button onClick={() => handleConvert()}>
+              Konvertuj
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

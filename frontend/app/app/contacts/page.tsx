@@ -22,6 +22,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+
+import { useToast } from '@/hooks/use-toast';
 import {
   Plus,
   Search,
@@ -35,6 +37,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { canViewAll } from '@/lib/auth/permissions';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { auditLogger } from '@/lib/audit/audit-logger';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -60,12 +63,38 @@ export default function ContactsPage() {
   const { profile, user } = useAuth();
   const router = useRouter();
   const { t } = useLanguage();
+  const { toast } = useToast();
+
+  const handleDelete = async (contact: Contact) => {
+    if (!confirm(t('common.delete_confirm_record'))) return;
+
+    const { error } = await supabase
+      .from('contacts')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', contact.id);
+
+    if (!error) {
+      await auditLogger.logChange('CONTACT', contact.id, 'DELETE', 'Status', 'Active', 'Deleted');
+      toast({
+        title: t('message.contact_deleted'),
+        description: t('message.contact_deleted_desc')
+      });
+      fetchContacts();
+    } else {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
 
   const fetchContacts = async () => {
     setLoading(true);
     let query = supabase
       .from('contacts')
       .select('*, account:accounts!contacts_account_id_fkey(*), owner:profiles!contacts_owner_id_fkey(*)')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     if (profile && !canViewAll(profile.role)) {
@@ -255,12 +284,22 @@ export default function ContactsPage() {
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
+
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => router.push(`/app/contacts/${contact.id}`)}>
                             View details
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => router.push(`/app/contacts/${contact.id}/edit`)}>
                             Edit contact
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(contact);
+                            }}
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            {t('common.delete')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

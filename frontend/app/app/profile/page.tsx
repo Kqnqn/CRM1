@@ -131,10 +131,7 @@ export default function ProfilePage() {
   };
 
   const handleConnectGoogleCalendar = () => {
-    toast({
-      title: 'Coming soon',
-      description: 'Google Calendar integration will be available soon',
-    });
+    window.location.href = '/api/auth/google/connect';
   };
 
   const handleDisconnectGoogleCalendar = async () => {
@@ -239,10 +236,10 @@ export default function ProfilePage() {
                       profile.role === 'ADMIN'
                         ? 'bg-red-500/20 text-red-500 border-red-500/30'
                         : profile.role === 'MANAGER'
-                        ? 'bg-blue-500/20 text-blue-500 border-blue-500/30'
-                        : profile.role === 'SALES_REP'
-                        ? 'bg-green-500/20 text-green-500 border-green-500/30'
-                        : 'bg-muted text-muted-foreground'
+                          ? 'bg-blue-500/20 text-blue-500 border-blue-500/30'
+                          : profile.role === 'SALES_REP'
+                            ? 'bg-green-500/20 text-green-500 border-green-500/30'
+                            : 'bg-muted text-muted-foreground'
                     }
                   >
                     {profile.role}

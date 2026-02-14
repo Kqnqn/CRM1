@@ -31,6 +31,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   Plus,
   Search,
   Building2,
@@ -45,6 +50,8 @@ import { useRouter } from 'next/navigation';
 import { canViewAll } from '@/lib/auth/permissions';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { cn } from '@/lib/utils';
+import { TagCloud } from '@/components/ui/tag-cloud';
+import { Tag as TagIcon } from 'lucide-react';
 
 const stageConfig: Record<string, { color: string; label: string }> = {
   OPEN: { color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400', label: 'Open' },
@@ -74,6 +81,7 @@ export default function AccountsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('ALL');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { profile, user } = useAuth();
   const router = useRouter();
   const { t } = useLanguage();
@@ -91,6 +99,10 @@ export default function AccountsPage() {
 
     if (stageFilter !== 'ALL') {
       query = query.eq('stage', stageFilter);
+    }
+
+    if (selectedTags.length > 0) {
+      query = query.contains('tags', selectedTags);
     }
 
     const { data, error } = await query;
@@ -112,7 +124,7 @@ export default function AccountsPage() {
 
   useEffect(() => {
     fetchAccounts();
-  }, [stageFilter, profile]);
+  }, [stageFilter, selectedTags, profile]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -177,9 +189,33 @@ export default function AccountsPage() {
                 <SelectItem value="CLOSED_LOST">{t('stage.closed_lost')}</SelectItem>
               </SelectContent>
             </Select>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("gap-2", selectedTags.length > 0 && "border-primary bg-primary/5")}>
+                  <TagIcon className="h-4 w-4" />
+                  {selectedTags.length > 0 ? `${selectedTags.length} ${t('common.tags')}` : t('common.tags')}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0" align="end">
+                <TagCloud
+                  allTags={Array.from(new Set(accounts.flatMap(a => a.tags || []))).sort()}
+                  selectedTags={selectedTags}
+                  onTagClick={(tag) => {
+                    setSelectedTags(prev =>
+                      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+                    );
+                  }}
+                  onClear={() => setSelectedTags([])}
+                  className="mb-0 border-none bg-transparent rounded-none"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </motion.div>
+
+      {/* Results count removed from here */}
 
       {/* Table */}
       <motion.div variants={itemVariants}>
@@ -213,6 +249,7 @@ export default function AccountsPage() {
                   <TableHead className="hidden lg:table-cell">{t('accounts.table.location')}</TableHead>
                   <TableHead className="hidden xl:table-cell">{t('accounts.table.phone')}</TableHead>
                   <TableHead>{t('accounts.table.stage')}</TableHead>
+                  <TableHead className="hidden md:table-cell">Oznake</TableHead>
                   <TableHead className="hidden xl:table-cell">{t('accounts.table.owner')}</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
@@ -279,6 +316,15 @@ export default function AccountsPage() {
                         {t(`stage.${account.stage.toLowerCase()}`)}
                       </Badge>
                     </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="flex flex-wrap gap-1">
+                        {account.tags?.map(tag => (
+                          <Badge key={tag} variant="soft" className="px-1.5 py-0 text-[10px] bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/30">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TableCell>
                     <TableCell className="hidden xl:table-cell">
                       <div className="flex items-center gap-2">
                         <div className="h-6 w-6 rounded-full bg-gradient-to-br from-primary to-primary-600 flex items-center justify-center text-[10px] font-medium text-primary-foreground">
@@ -317,14 +363,16 @@ export default function AccountsPage() {
       </motion.div>
 
       {/* Results count */}
-      {!loading && accounts.length > 0 && (
-        <motion.p
-          variants={itemVariants}
-          className="mt-4 text-sm text-muted-foreground"
-        >
-          Showing {accounts.length} account{accounts.length !== 1 ? 's' : ''}
-        </motion.p>
-      )}
-    </motion.div>
+      {
+        !loading && accounts.length > 0 && (
+          <motion.p
+            variants={itemVariants}
+            className="mt-4 text-sm text-muted-foreground"
+          >
+            Showing {accounts.length} account{accounts.length !== 1 ? 's' : ''}
+          </motion.p>
+        )
+      }
+    </motion.div >
   );
 }

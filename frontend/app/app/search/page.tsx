@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { supabase, Lead, Account, Contact, Opportunity } from '@/lib/supabase/client';
+import { supabase, Lead, Account, Contact } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,6 @@ import {
   Users,
   Building2,
   UserCircle,
-  Target,
   ArrowRight,
   FileSearch,
 } from 'lucide-react';
@@ -26,7 +25,6 @@ interface SearchResults {
   leads: Lead[];
   accounts: Account[];
   contacts: Contact[];
-  opportunities: Opportunity[];
 }
 
 export default function SearchPage() {
@@ -38,7 +36,6 @@ export default function SearchPage() {
     leads: [],
     accounts: [],
     contacts: [],
-    opportunities: [],
   });
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -84,20 +81,10 @@ export default function SearchPage() {
           )
           .limit(20);
 
-        // Search opportunities
-        const { data: opportunitiesData } = await supabase
-          .from('opportunities')
-          .select('*, account:accounts(id, name), contact:contacts(id, first_name, last_name)')
-          .or(
-            `name.ilike.%${lowerQuery}%,description.ilike.%${lowerQuery}%`
-          )
-          .limit(20);
-
         setResults({
           leads: leadsData || [],
           accounts: accountsData || [],
           contacts: contactsData || [],
-          opportunities: opportunitiesData || [],
         });
       } catch (error) {
         console.error('Search error:', error);
@@ -112,8 +99,7 @@ export default function SearchPage() {
   const totalResults =
     results.leads.length +
     results.accounts.length +
-    results.contacts.length +
-    results.opportunities.length;
+    results.contacts.length;
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -126,10 +112,6 @@ export default function SearchPage() {
       PAUSED: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
       CLOSED: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400',
       OPEN: 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-400',
-      CLOSED_WON: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
-      CLOSED_LOST: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-      PROSPECTING: 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-400',
-      PROPOSAL: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
       NEGOTIATION: 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400',
     };
     return colors[status] || 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400';
@@ -143,7 +125,7 @@ export default function SearchPage() {
             {t('common.search') || 'Pretraga'}
           </h1>
           <p className="text-muted-foreground">
-            Pretražite lidove, klijente, kontakte i prilike
+            Pretražite lidove, klijente i kontakte
           </p>
         </div>
 
@@ -244,10 +226,6 @@ export default function SearchPage() {
               <UserCircle className="mr-2 h-4 w-4" />
               Kontakti ({results.contacts.length})
             </TabsTrigger>
-            <TabsTrigger value="opportunities">
-              <Target className="mr-2 h-4 w-4" />
-              Prilike ({results.opportunities.length})
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">
@@ -305,10 +283,10 @@ export default function SearchPage() {
                               {account.stage === 'OPEN'
                                 ? 'Otvoren'
                                 : account.stage === 'CLOSED_WON'
-                                ? 'Dobijen'
-                                : account.stage === 'CLOSED_LOST'
-                                ? 'Izgubljen'
-                                : account.stage}
+                                  ? 'Dobijen'
+                                  : account.stage === 'CLOSED_LOST'
+                                    ? 'Izgubljen'
+                                    : account.stage}
                             </Badge>
                             <ArrowRight className="h-4 w-4 text-muted-foreground" />
                           </div>
@@ -349,168 +327,6 @@ export default function SearchPage() {
               </div>
             )}
 
-            {results.opportunities.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Target className="h-4 w-4" />
-                  Prilike
-                </h3>
-                <div className="grid gap-3">
-                  {results.opportunities.map((opportunity) => (
-                    <Link key={opportunity.id} href={`/app/opportunities/${opportunity.id}`}>
-                      <Card className="hover:border-primary/50 transition-colors cursor-pointer">
-                        <CardContent className="p-4 flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{opportunity.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {opportunity.account?.name && `${opportunity.account.name} • `}
-                              {opportunity.amount
-                                ? `${opportunity.amount.toLocaleString()} KM`
-                                : 'Nema iznosa'}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Badge className={getStatusColor(opportunity.stage)}>
-                              {opportunity.stage}
-                            </Badge>
-                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="leads" className="space-y-3">
-            {results.leads.map((lead) => (
-              <Link key={lead.id} href={`/app/leads/${lead.id}`}>
-                <Card className="hover:border-primary/50 transition-colors cursor-pointer">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-medium">{lead.company_name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {lead.contact_person_name}
-                        </p>
-                        {lead.email && (
-                          <p className="text-sm text-muted-foreground">{lead.email}</p>
-                        )}
-                        {lead.phone && (
-                          <p className="text-sm text-muted-foreground">{lead.phone}</p>
-                        )}
-                      </div>
-                      <Badge className={getStatusColor(lead.status)}>
-                        {lead.status}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </TabsContent>
-
-          <TabsContent value="accounts" className="space-y-3">
-            {results.accounts.map((account) => (
-              <Link key={account.id} href={`/app/accounts/${account.id}`}>
-                <Card className="hover:border-primary/50 transition-colors cursor-pointer">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-medium">{account.name}</p>
-                        {account.industry && (
-                          <p className="text-sm text-muted-foreground">{account.industry}</p>
-                        )}
-                        {(account.city || account.country) && (
-                          <p className="text-sm text-muted-foreground">
-                            {[account.city, account.country].filter(Boolean).join(', ')}
-                          </p>
-                        )}
-                        {account.phone && (
-                          <p className="text-sm text-muted-foreground">{account.phone}</p>
-                        )}
-                      </div>
-                      <Badge className={getStatusColor(account.stage)}>
-                        {account.stage === 'OPEN'
-                          ? 'Otvoren'
-                          : account.stage === 'CLOSED_WON'
-                          ? 'Dobijen'
-                          : account.stage === 'CLOSED_LOST'
-                          ? 'Izgubljen'
-                          : account.stage}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </TabsContent>
-
-          <TabsContent value="contacts" className="space-y-3">
-            {results.contacts.map((contact) => (
-              <Link key={contact.id} href={`/app/contacts/${contact.id}`}>
-                <Card className="hover:border-primary/50 transition-colors cursor-pointer">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-medium">
-                          {contact.first_name} {contact.last_name}
-                        </p>
-                        {contact.account?.name && (
-                          <p className="text-sm text-muted-foreground">{contact.account.name}</p>
-                        )}
-                        {contact.title && (
-                          <p className="text-sm text-muted-foreground">{contact.title}</p>
-                        )}
-                        {contact.email && (
-                          <p className="text-sm text-muted-foreground">{contact.email}</p>
-                        )}
-                        {contact.phone && (
-                          <p className="text-sm text-muted-foreground">{contact.phone}</p>
-                        )}
-                        {contact.mobile && (
-                          <p className="text-sm text-muted-foreground">Mob: {contact.mobile}</p>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </TabsContent>
-
-          <TabsContent value="opportunities" className="space-y-3">
-            {results.opportunities.map((opportunity) => (
-              <Link key={opportunity.id} href={`/app/opportunities/${opportunity.id}`}>
-                <Card className="hover:border-primary/50 transition-colors cursor-pointer">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-medium">{opportunity.name}</p>
-                        {opportunity.account?.name && (
-                          <p className="text-sm text-muted-foreground">{opportunity.account.name}</p>
-                        )}
-                        {opportunity.amount !== null && (
-                          <p className="text-sm font-medium text-primary">
-                            {opportunity.amount.toLocaleString()} KM
-                          </p>
-                        )}
-                        {opportunity.probability !== null && (
-                          <p className="text-sm text-muted-foreground">
-                            Vjerovatnoća: {opportunity.probability}%
-                          </p>
-                        )}
-                      </div>
-                      <Badge className={getStatusColor(opportunity.stage)}>
-                        {opportunity.stage}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
           </TabsContent>
         </Tabs>
       )}

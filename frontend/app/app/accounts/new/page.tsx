@@ -12,6 +12,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { Tag as TagIcon } from 'lucide-react';
+import { TagInput } from '@/components/ui/tag-input';
 
 export default function NewAccountPage() {
   const router = useRouter();
@@ -30,6 +32,7 @@ export default function NewAccountPage() {
     country: '',
     phone: '',
     website: '',
+    tags: [] as string[],
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,6 +43,7 @@ export default function NewAccountPage() {
     try {
       const { error: insertError } = await supabase.from('accounts').insert({
         ...formData,
+        tags: formData.tags || [],
         owner_id: user?.id,
         stage: 'OPEN',
       });
@@ -174,6 +178,23 @@ export default function NewAccountPage() {
                     id="country"
                     value={formData.country}
                     onChange={(e) => updateFormData('country', e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Oznake</h3>
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <TagIcon className="h-4 w-4" />
+                    Oznake klijenta
+                  </Label>
+                  <TagInput
+                    tags={formData.tags}
+                    onChange={(tags) => setFormData({ ...formData, tags })}
+                    placeholder="Dodaj oznaku..."
                   />
                 </div>
               </div>

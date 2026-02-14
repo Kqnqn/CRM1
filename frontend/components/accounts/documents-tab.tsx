@@ -28,7 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Upload, Download, Trash2, File, Eye, FileText, Image as ImageIcon, FileSpreadsheet } from 'lucide-react';
+import { Upload, Download, Trash2, File, Eye, FileText, Image as ImageIcon, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/lib/i18n/language-context';
 
@@ -41,10 +41,21 @@ interface Document {
   storage_key: string;
   uploaded_by: string;
   created_at: string;
+  document_type?: string;
   uploader?: {
     full_name: string;
   };
 }
+
+const DOCUMENT_TYPES = [
+  { id: 'INVOICE', label: 'documents.type.invoice' },
+  { id: 'CONTRACT', label: 'documents.type.contract' },
+  { id: 'PROPOSAL', label: 'documents.type.proposal' },
+  { id: 'REPORT', label: 'documents.type.report' },
+  { id: 'MARKETING', label: 'documents.type.marketing' },
+  { id: 'LEGAL', label: 'documents.type.legal' },
+  { id: 'OTHER', label: 'documents.type.other' },
+];
 
 interface DocumentsTabProps {
   entityType: 'ACCOUNT' | 'LEAD' | 'CONTACT' | 'OPPORTUNITY';
@@ -57,7 +68,7 @@ export function DocumentsTab({ entityType, entityId }: DocumentsTabProps) {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadTitle, setUploadTitle] = useState('');
-  const [uploadCategory, setUploadCategory] = useState('');
+  const [uploadCategory, setUploadCategory] = useState('INVOICE');
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
@@ -96,6 +107,15 @@ export function DocumentsTab({ entityType, entityId }: DocumentsTabProps) {
   }, [entityId, entityType]);
 
   const handleUpload = async () => {
+    if (!user) {
+      toast({
+        title: t('common.error'),
+        description: 'You must be logged in to upload.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!selectedFiles || selectedFiles.length === 0) {
       toast({
         title: t('documents.fail_no_files'),
@@ -106,59 +126,85 @@ export function DocumentsTab({ entityType, entityId }: DocumentsTabProps) {
     }
 
     setUploading(true);
+    console.log('--- HANDLE UPLOAD START ---', {
+      filesCount: selectedFiles.length,
+      entityType,
+      entityId,
+      userId: user.id
+    });
 
     try {
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
+      const filesArray = Array.from(selectedFiles);
+      for (let i = 0; i < filesArray.length; i++) {
+        const file = filesArray[i];
         const fileExt = file.name.split('.').pop();
         const fileName = `${user?.id}/${Date.now()}-${i}.${fileExt}`;
+        console.log(`Uploading file ${i + 1}/${filesArray.length}:`, file.name, 'as', fileName);
 
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('documents')
           .upload(fileName, file);
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('Storage Upload Error:', uploadError);
+          throw uploadError;
+        }
+        console.log('Storage upload success:', uploadData.path);
 
-        const { data: document, error: docError } = await supabase
-          .from('documents')
-          .insert({
-            title: uploadTitle || file.name,
-            file_name: file.name,
-            file_size: file.size,
-            mime_type: file.type,
-            storage_key: uploadData.path,
-            uploaded_by: user?.id,
+        // 2. Call API to create Metadata and Link
+        console.log('Calling /api/documents/create-meta...');
+        const response = await fetch('/api/documents/create-meta', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileData: {
+              title: uploadTitle || file.name,
+              fileName: file.name,
+              fileSize: file.size,
+              mimeType: file.type,
+              storageKey: uploadData.path
+            },
+            docType: uploadCategory,
+            entityType: entityType,
+            entityId: entityId,
+            userId: user?.id
           })
-          .select()
-          .single();
-
-        if (docError) throw docError;
-
-        await supabase.from('document_links').insert({
-          document_id: document.id,
-          linked_to_type: entityType,
-          linked_to_id: entityId,
-          linked_by: user?.id,
         });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('API Error Response Text:', errorText);
+          let errorMsg = 'Failed to create document metadata';
+          try {
+            const errorData = JSON.parse(errorText);
+            errorMsg = errorData.error || errorMsg;
+          } catch (e) { }
+          throw new Error(errorMsg);
+        }
+        console.log('API Response success');
       }
+
+      console.log('Upload workflow complete');
 
       toast({
         title: t('documents.success_uploaded'),
-        description: t('documents.success_count').replace('{count}', selectedFiles.length.toString()),
+        description: t('documents.success_count').replace('{count}', filesArray.length.toString()),
       });
 
       setShowUploadDialog(false);
       setUploadTitle('');
-      setUploadCategory('');
+      setUploadCategory('INVOICE');
       setSelectedFiles(null);
       fetchDocuments();
     } catch (error: any) {
+      console.error('HANDLE UPLOAD CRITICAL ERROR:', error);
       toast({
         title: t('documents.fail_uploaded'),
-        description: error.message,
+        description: error.message || 'An unknown error occurred during upload',
         variant: 'destructive',
       });
     } finally {
+      console.log('--- HANDLE UPLOAD FINALLY ---');
       setUploading(false);
     }
   };
@@ -283,6 +329,7 @@ export function DocumentsTab({ entityType, entityId }: DocumentsTabProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>{t('documents.table.name')}</TableHead>
+                <TableHead>{t('common.type')}</TableHead>
                 <TableHead>{t('documents.table.size')}</TableHead>
                 <TableHead>{t('documents.table.uploaded_by')}</TableHead>
                 <TableHead>{t('documents.table.date')}</TableHead>
@@ -297,6 +344,9 @@ export function DocumentsTab({ entityType, entityId }: DocumentsTabProps) {
                       <File className="h-4 w-4 text-gray-400" />
                       <span className="font-medium">{doc.title}</span>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {doc.document_type ? t(`documents.type.${doc.document_type.toLowerCase()}` as any) : '-'}
                   </TableCell>
                   <TableCell>{formatFileSize(doc.file_size)}</TableCell>
                   <TableCell>{doc.uploader?.full_name || '-'}</TableCell>
@@ -363,6 +413,20 @@ export function DocumentsTab({ entityType, entityId }: DocumentsTabProps) {
                 </p>
               </div>
 
+              <div className="space-y-2">
+                <Label>{t('common.type')}</Label>
+                <Select value={uploadCategory} onValueChange={setUploadCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('common.select_type')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DOCUMENT_TYPES.map(type => (
+                      <SelectItem key={type.id} value={type.id}>{t(type.label as any)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="flex justify-end space-x-3">
                 <Button
                   variant="outline"
@@ -372,6 +436,7 @@ export function DocumentsTab({ entityType, entityId }: DocumentsTabProps) {
                   {t('common.cancel')}
                 </Button>
                 <Button onClick={handleUpload} disabled={uploading}>
+                  {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {uploading ? t('common.uploading') : t('common.upload')}
                 </Button>
               </div>
@@ -381,32 +446,32 @@ export function DocumentsTab({ entityType, entityId }: DocumentsTabProps) {
       </CardContent>
 
       <Dialog open={showPreviewDialog} onOpenChange={(open) => !open && closePreview()}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-auto">
+        <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>{previewDoc?.title}</DialogTitle>
           </DialogHeader>
-          <div className="mt-4">
+          <div className="flex-1 mt-4 overflow-hidden rounded-lg border bg-muted/5 relative">
             {previewDoc?.mime_type?.startsWith('image/') ? (
               <img
                 src={previewUrl}
                 alt={previewDoc.title}
-                className="max-w-full h-auto rounded-lg"
+                className="w-full h-full object-contain"
               />
             ) : previewDoc?.mime_type === 'application/pdf' ? (
               <iframe
                 src={previewUrl}
-                className="w-full h-[70vh] border-0 rounded-lg"
+                className="w-full h-full border-0"
                 title={previewDoc.title}
               />
             ) : previewDoc?.mime_type?.startsWith('text/') ? (
               <iframe
                 src={previewUrl}
-                className="w-full h-[70vh] border-0 rounded-lg bg-white"
+                className="w-full h-full border-0 bg-white"
                 title={previewDoc.title}
               />
             ) : (
-              <div className="text-center py-12">
-                <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <div className="flex flex-col items-center justify-center h-full text-center p-12">
+                <FileText className="h-16 w-16 text-gray-400 mb-4" />
                 <p className="text-gray-600 mb-4">
                   {t('common.preview_not_available')}
                 </p>

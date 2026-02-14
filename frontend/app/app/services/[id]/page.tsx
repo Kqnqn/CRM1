@@ -18,11 +18,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Calendar, MapPin, User, DollarSign, Check, FileText } from 'lucide-react';
+import { Calendar, MapPin, User, DollarSign, Check, FileText, Clock } from 'lucide-react';
 import { format, parseISO, addMonths, addYears, isPast, differenceInDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { EntityHistory } from '@/components/shared/entity-history';
 
 export default function ServiceDetailPage() {
   const params = useParams();
@@ -36,11 +37,18 @@ export default function ServiceDetailPage() {
   const [serviceLogs, setServiceLogs] = useState<ServiceLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+  const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
 
   const [completeFormData, setCompleteFormData] = useState({
     performed_at: new Date().toISOString().slice(0, 16),
     note: '',
     price_charged: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [rescheduleFormData, setRescheduleFormData] = useState({
+    date: '',
+    reason: '',
   });
 
   const fetchService = async () => {
@@ -75,42 +83,90 @@ export default function ServiceDetailPage() {
     }
   }, [serviceId]);
 
+  const handleReschedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!service || !user) return;
+
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    try {
+      const response = await fetch('/api/services/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          action: 'RESCHEDULE',
+          serviceId,
+          userId: user.id,
+          data: {
+            newDate: new Date(rescheduleFormData.date).toISOString(),
+            reason: rescheduleFormData.reason
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Update failed');
+      }
+
+      toast({
+        title: t('services.rescheduled') || 'Service Rescheduled',
+        description: t('services.success_updated'),
+      });
+      setShowRescheduleDialog(false);
+      setRescheduleFormData({ date: '', reason: '' });
+      fetchService();
+    } catch (error: any) {
+      console.error(error);
+      toast({
+        title: t('common.error'),
+        description: 'Failed to reschedule service',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleCompleteService = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!service) return;
+    if (!service || !user) return;
 
     const performedAt = completeFormData.performed_at;
     const nextServiceDueAt = service.interval_unit === 'MONTHS'
       ? addMonths(parseISO(performedAt), service.interval_value)
       : addYears(parseISO(performedAt), service.interval_value);
 
-    const { error: logError } = await supabase.from('service_logs').insert({
-      service_id: serviceId,
-      performed_at: performedAt,
-      performed_by_id: user?.id,
-      note: completeFormData.note || null,
-      price_charged: completeFormData.price_charged ? parseFloat(completeFormData.price_charged) : null,
-    });
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
 
-    if (logError) {
-      toast({
-        title: t('common.error') || 'Greška',
-        description: t('services.error_create_log') || 'Greška prilikom kreiranja zapisa servisa',
-        variant: 'destructive',
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/services/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          action: 'COMPLETE',
+          serviceId,
+          userId: user.id,
+          data: {
+            performedAt,
+            note: completeFormData.note,
+            priceCharged: completeFormData.price_charged ? parseFloat(completeFormData.price_charged) : null,
+            nextDueAt: nextServiceDueAt.toISOString()
+          }
+        })
       });
-      return;
-    }
 
-    const { error: updateError } = await supabase
-      .from('service_contracts')
-      .update({
-        last_service_at: performedAt,
-        next_service_due_at: nextServiceDueAt.toISOString(),
-      })
-      .eq('id', serviceId);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Update failed');
+      }
 
-    if (!updateError) {
       toast({
         title: t('services.complete_service'),
         description: t('services.success_updated'),
@@ -123,6 +179,15 @@ export default function ServiceDetailPage() {
       });
       fetchService();
       fetchServiceLogs();
+    } catch (error: any) {
+      console.error('Frontend Error completing service:', error);
+      toast({
+        title: t('common.error'),
+        description: error.message || 'Failed to complete service',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -168,68 +233,110 @@ export default function ServiceDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>{t('services.info')}</span>
-                {service.status === 'ACTIVE' && (
-                  <Dialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Check className="h-4 w-4 mr-2" />
-                        {t('services.mark_done')}
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>{t('services.complete_service')}</DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={handleCompleteService} className="space-y-4">
-                        <div className="space-y-2">
-                          <Label>{t('services.log.performed_at')}</Label>
-                          <Input
-                            type="datetime-local"
-                            value={completeFormData.performed_at}
-                            onChange={(e) => setCompleteFormData({ ...completeFormData, performed_at: e.target.value })}
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>{t('services.notes')}</Label>
-                          <Textarea
-                            value={completeFormData.note}
-                            onChange={(e) => setCompleteFormData({ ...completeFormData, note: e.target.value })}
-                            placeholder={t('services.notes')}
-                            rows={3}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>{t('services.log.price_charged')} ({t('common.optional')})</Label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={completeFormData.price_charged}
-                            onChange={(e) => setCompleteFormData({ ...completeFormData, price_charged: e.target.value })}
-                            placeholder="0.00"
-                          />
-                        </div>
-                        <div className="flex justify-end space-x-3 pt-4">
-                          <Button type="button" variant="outline" onClick={() => setShowCompleteDialog(false)}>
-                            {t('common.cancel')}
+                <div className="flex gap-2">
+                  {service.status === 'ACTIVE' && ['overdue', 'due-soon'].includes(getServiceStatus()) && (
+                    <>
+                      <Dialog open={showRescheduleDialog} onOpenChange={setShowRescheduleDialog}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline">
+                            <Clock className="h-4 w-4 mr-2" />
+                            {t('services.reschedule') || 'Reschedule'}
                           </Button>
-                          <Button type="submit">{t('services.complete_service')}</Button>
-                        </div>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                )}
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>{t('services.reschedule') || 'Reschedule Service'}</DialogTitle>
+                          </DialogHeader>
+                          <form onSubmit={handleReschedule} className="space-y-4">
+                            <div className="space-y-2">
+                              <Label>{t('services.new_date') || 'New Date'}</Label>
+                              <Input
+                                type="date"
+                                value={rescheduleFormData.date}
+                                onChange={(e) => setRescheduleFormData({ ...rescheduleFormData, date: e.target.value })}
+                                required
+                                min={new Date().toISOString().split('T')[0]}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>{t('services.reason') || 'Reason'}</Label>
+                              <Textarea
+                                value={rescheduleFormData.reason}
+                                onChange={(e) => setRescheduleFormData({ ...rescheduleFormData, reason: e.target.value })}
+                                placeholder={t('services.reschedule_reason_placeholder') || 'Reason for rescheduling...'}
+                                required
+                                rows={3}
+                              />
+                            </div>
+                            <div className="flex justify-end space-x-3 pt-4">
+                              <Button type="button" variant="outline" onClick={() => setShowRescheduleDialog(false)}>
+                                {t('common.cancel')}
+                              </Button>
+                              <Button type="submit">{t('common.save')}</Button>
+                            </div>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+
+                      <Dialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+                        <DialogTrigger asChild>
+                          <Button>
+                            <Check className="h-4 w-4 mr-2" />
+                            {t('services.mark_done')}
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>{t('services.complete_service')}</DialogTitle>
+                          </DialogHeader>
+                          <form onSubmit={handleCompleteService} className="space-y-4">
+                            <div className="space-y-2">
+                              <Label>{t('services.log.performed_at')}</Label>
+                              <Input
+                                type="datetime-local"
+                                value={completeFormData.performed_at}
+                                onChange={(e) => setCompleteFormData({ ...completeFormData, performed_at: e.target.value })}
+                                required
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>{t('services.notes')}</Label>
+                              <Textarea
+                                value={completeFormData.note}
+                                onChange={(e) => setCompleteFormData({ ...completeFormData, note: e.target.value })}
+                                placeholder={t('services.notes_required') || 'Enter service notes'}
+                                rows={3}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>{t('services.log.price_charged')} ({t('common.optional')})</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={completeFormData.price_charged}
+                                onChange={(e) => setCompleteFormData({ ...completeFormData, price_charged: e.target.value })}
+                                placeholder="0.00"
+                              />
+                            </div>
+                            <div className="flex justify-end space-x-3 pt-4">
+                              <Button type="button" variant="outline" onClick={() => setShowCompleteDialog(false)} disabled={isSubmitting}>
+                                {t('common.cancel')}
+                              </Button>
+                              <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? t('common.loading') : t('services.complete_service')}
+                              </Button>
+                            </div>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+                    </>
+                  )}
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <Label className="text-gray-500">{t('common.company')}</Label>
-                  <Link href={`/app/accounts/${service.account_id}`} className="hover:text-blue-600">
-                    <p className="font-medium mt-1">{service.account?.name}</p>
-                  </Link>
-                </div>
                 <div>
                   <Label className="text-gray-500">{t('common.status')}</Label>
                   <div className="mt-1">{getStatusBadge()}</div>
@@ -316,16 +423,18 @@ export default function ServiceDetailPage() {
             </CardContent>
           </Card>
 
-          {service.notes && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('services.notes')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 whitespace-pre-wrap">{service.notes}</p>
-              </CardContent>
-            </Card>
-          )}
+          {
+            service.notes && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t('services.notes')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 whitespace-pre-wrap">{service.notes}</p>
+                </CardContent>
+              </Card>
+            )
+          }
         </div>
       ),
     },
@@ -376,6 +485,11 @@ export default function ServiceDetailPage() {
       ),
     },
     {
+      value: 'audit',
+      label: 'Audit Log',
+      content: <EntityHistory entityType="SERVICE" entityId={serviceId} />,
+    },
+    {
       value: 'documents',
       label: t('common.documents'),
       content: (
@@ -401,7 +515,7 @@ export default function ServiceDetailPage() {
               <h1 className="text-2xl font-bold text-gray-900">{service.device_type}</h1>
               {getStatusBadge()}
             </div>
-            <p className="text-gray-600 mt-1">{t('services.create_service')} za {service.account?.name}</p>
+            <p className="text-gray-600 mt-1">{t('services.info')}</p>
           </div>
         </div>
       </div>

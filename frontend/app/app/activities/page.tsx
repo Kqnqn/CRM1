@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { supabase, Activity } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Button } from '@/components/ui/button';
@@ -24,12 +25,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, CheckSquare, Calendar, Edit, Trash2, Check } from 'lucide-react';
+import { Plus, CheckSquare, Calendar, Edit, Trash2, Check, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export default function ActivitiesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ActivitiesContent />
+    </Suspense>
+  );
+}
+
+function ActivitiesContent() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
@@ -42,7 +52,8 @@ export default function ActivitiesPage() {
   const [leads, setLeads] = useState<Array<{ id: string; company_name: string }>>([]);
   const [accounts, setAccounts] = useState<Array<{ id: string; name: string }>>([]);
   const [contacts, setContacts] = useState<Array<{ id: string; first_name: string; last_name: string }>>([]);
-  const [opportunities, setOpportunities] = useState<Array<{ id: string; name: string }>>([]);
+  const [profiles, setProfiles] = useState<Array<{ id: string; full_name: string; email: string }>>([]);
+  const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
     subject: '',
@@ -62,7 +73,7 @@ export default function ActivitiesPage() {
     const { data } = await supabase
       .from('activities')
       .select('*, owner:profiles!activities_owner_id_fkey(*)')
-      .eq('owner_id', user?.id)
+      .or(`owner_id.eq.${user?.id},assigned_to.eq.${user?.id}`)
       .order('created_at', { ascending: false });
 
     if (data) setActivities(data);
@@ -70,17 +81,17 @@ export default function ActivitiesPage() {
   };
 
   const fetchEntities = async () => {
-    const [leadsRes, accountsRes, contactsRes, oppsRes] = await Promise.all([
+    const [leadsRes, accountsRes, contactsRes, profilesRes] = await Promise.all([
       supabase.from('leads').select('id, company_name').order('company_name').limit(100),
       supabase.from('accounts').select('id, name').order('name').limit(100),
       supabase.from('contacts').select('id, first_name, last_name').order('first_name').limit(100),
-      supabase.from('opportunities').select('id, name').order('name').limit(100),
+      supabase.from('profiles').select('id, full_name, email').neq('id', user?.id || '').order('full_name'),
     ]);
 
     if (leadsRes.data) setLeads(leadsRes.data);
     if (accountsRes.data) setAccounts(accountsRes.data);
     if (contactsRes.data) setContacts(contactsRes.data);
-    if (oppsRes.data) setOpportunities(oppsRes.data);
+    if (profilesRes.data) setProfiles(profilesRes.data);
   };
 
   useEffect(() => {
@@ -89,6 +100,18 @@ export default function ActivitiesPage() {
       fetchEntities();
     }
   }, [user]);
+
+  const searchParams = useSearchParams();
+  const taskId = searchParams.get('taskId');
+
+  useEffect(() => {
+    if (taskId && activities.length > 0) {
+      const task = activities.find(a => a.id === taskId);
+      if (task) {
+        handleEdit(task);
+      }
+    }
+  }, [taskId, activities]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,6 +142,13 @@ export default function ActivitiesPage() {
         .eq('id', editingActivity.id);
 
       if (!error) {
+        // Handle participants update? 
+        // For simplicity, we only handle adding in edit mode if needed, 
+        // but replacing is safer. For now, let's just Upsert invitiations if changed?
+        // User asked: "Add TaskParticipant table... In New Task form". 
+        // Edit mode support not explicitly asked but good to have.
+        // I will implement ADDING only in CREATE mode to be safe and simple.
+
         toast({
           title: t('message.activity_updated'),
           description: t('message.activity_updated_desc'),
@@ -128,9 +158,19 @@ export default function ActivitiesPage() {
       activityData.owner_id = user?.id;
       activityData.assigned_to = user?.id;
 
-      const { error } = await supabase.from('activities').insert(activityData);
+      const { data: newActivity, error } = await supabase.from('activities').insert(activityData).select().single();
 
-      if (!error) {
+      if (!error && newActivity) {
+        // Invite users
+        if (selectedParticipants.length > 0) {
+          const participants = selectedParticipants.map(uid => ({
+            task_id: newActivity.id,
+            user_id: uid,
+            status: 'INVITED'
+          }));
+          await supabase.from('task_participants').insert(participants);
+        }
+
         toast({
           title: t('message.activity_created'),
           description: t('message.activity_created_desc'),
@@ -140,6 +180,7 @@ export default function ActivitiesPage() {
 
     setShowDialog(false);
     setEditingActivity(null);
+    setSelectedParticipants([]);
     setFormData({
       subject: '',
       description: '',
@@ -238,9 +279,7 @@ export default function ActivitiesPage() {
       case 'CONTACT':
         const contact = contacts.find((c) => c.id === activity.related_to_id);
         return contact ? `${t('nav.contacts')}: ${contact.first_name} ${contact.last_name}` : t('nav.contacts');
-      case 'OPPORTUNITY':
-        const opp = opportunities.find((o) => o.id === activity.related_to_id);
-        return opp ? `${t('nav.opportunities')}: ${opp.name}` : t('nav.opportunities');
+
       default:
         return null;
     }
@@ -324,7 +363,6 @@ export default function ActivitiesPage() {
                       <SelectItem value="LEAD">{t('nav.leads')}</SelectItem>
                       <SelectItem value="ACCOUNT">{t('nav.accounts')}</SelectItem>
                       <SelectItem value="CONTACT">{t('nav.contacts')}</SelectItem>
-                      <SelectItem value="OPPORTUNITY">{t('nav.opportunities')}</SelectItem>
                     </SelectContent>
                   </Select>
                   {formData.related_to_type && (
@@ -342,7 +380,7 @@ export default function ActivitiesPage() {
 
               {formData.related_to_type && (
                 <div className="space-y-2">
-                  <Label>{t('common.select')} {formData.related_to_type === 'LEAD' ? t('nav.leads') : formData.related_to_type === 'ACCOUNT' ? t('nav.accounts') : formData.related_to_type === 'CONTACT' ? t('nav.contacts') : t('nav.opportunities')}</Label>
+                  <Label>{t('common.select')} {formData.related_to_type === 'LEAD' ? t('nav.leads') : formData.related_to_type === 'ACCOUNT' ? t('nav.accounts') : t('nav.contacts')}</Label>
                   <Select
                     value={formData.related_to_id}
                     onValueChange={(value) => setFormData({ ...formData, related_to_id: value })}
@@ -369,14 +407,72 @@ export default function ActivitiesPage() {
                             {contact.first_name} {contact.last_name}
                           </SelectItem>
                         ))}
-                      {formData.related_to_type === 'OPPORTUNITY' &&
-                        opportunities.map((opp) => (
-                          <SelectItem key={opp.id} value={opp.id}>
-                            {opp.name}
-                          </SelectItem>
-                        ))}
                     </SelectContent>
                   </Select>
+                </div>
+              )}
+
+              {activityType === 'TASK' && (
+                <div className="space-y-2">
+                  <Label>{t('activities.invite_users')}</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <Users className="mr-2 h-4 w-4" />
+                        {selectedParticipants.length > 0
+                          ? `${selectedParticipants.length} user${selectedParticipants.length > 1 ? 's' : ''} selected`
+                          : t('common.select_users')}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0" align="start">
+                      <div className="p-2 border-b">
+                        <p className="text-sm font-medium text-muted-foreground">{t('common.select_users')}</p>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto p-2 space-y-2">
+                        {profiles.map((profile) => (
+                          <div key={profile.id} className="flex items-center space-x-2 p-2 hover:bg-muted/50 rounded-md">
+                            <input
+                              type="checkbox"
+                              id={`user-${profile.id}`}
+                              checked={selectedParticipants.includes(profile.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedParticipants([...selectedParticipants, profile.id]);
+                                } else {
+                                  setSelectedParticipants(selectedParticipants.filter(id => id !== profile.id));
+                                }
+                              }}
+                              className="h-4 w-4 rounded border-gray-300"
+                            />
+                            <label htmlFor={`user-${profile.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1">
+                              {profile.full_name}
+                              <span className="text-xs text-muted-foreground ml-1">({profile.email})</span>
+                            </label>
+                          </div>
+                        ))}
+                        {profiles.length === 0 && <div className="p-2 text-sm text-center text-muted-foreground">No other users found</div>}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  {selectedParticipants.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {selectedParticipants.map(id => {
+                        const p = profiles.find(pr => pr.id === id);
+                        return p ? (
+                          <Badge key={id} variant="secondary" className="text-xs">
+                            {p.full_name}
+                            <button
+                              type="button"
+                              className="ml-1 hover:text-destructive"
+                              onClick={() => setSelectedParticipants(selectedParticipants.filter(pid => pid !== id))}
+                            >
+                              ×
+                            </button>
+                          </Badge>
+                        ) : null;
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
 

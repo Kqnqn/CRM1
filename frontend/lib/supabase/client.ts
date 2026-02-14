@@ -36,6 +36,8 @@ export interface Lead {
   converted_at?: string;
   created_at: string;
   updated_at: string;
+  tags?: string[];
+  contact_id?: string;
   owner?: Profile;
 }
 
@@ -57,12 +59,13 @@ export interface Account {
   owner_id: string;
   created_at: string;
   updated_at: string;
+  tags?: string[];
   owner?: Profile;
 }
 
 export interface Contact {
   id: string;
-  account_id: string;
+  account_id?: string;
   first_name: string;
   last_name: string;
   email?: string;
@@ -127,6 +130,7 @@ export interface Document {
   mime_type?: string;
   storage_key: string;
   uploaded_by: string;
+  document_type?: string;
   created_at: string;
   uploader?: Profile;
 }
@@ -171,7 +175,7 @@ export type ServiceStatus = 'ACTIVE' | 'PAUSED' | 'CLOSED';
 
 export interface ServiceContract {
   id: string;
-  account_id: string;
+  account_id?: string;
   device_type: string;
   device_serial?: string;
   location_address: string;

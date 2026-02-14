@@ -21,8 +21,8 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   signIn: async () => ({ error: null }),
   signUp: async () => ({ error: null }),
-  signOut: async () => {},
-  refreshProfile: async () => {},
+  signOut: async () => { },
+  refreshProfile: async () => { },
 });
 
 export const useAuth = () => {
@@ -78,10 +78,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+
+    if (data.user && !error) {
+      // Log login history
+      try {
+        await supabase.from('login_history').insert({
+          user_id: data.user.id,
+          user_agent: window.navigator.userAgent,
+          ip_address: null, // Cannot easily get from client without external service
+        });
+      } catch (logError) {
+        console.error('Failed to log login history:', logError);
+        // Do not block login if logging fails
+      }
+    }
+
     return { error };
   };
 

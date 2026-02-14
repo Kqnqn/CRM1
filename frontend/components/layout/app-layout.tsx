@@ -64,7 +64,6 @@ const navigation = [
   { nameKey: 'nav.leads', href: '/app/leads', icon: Users },
   { nameKey: 'nav.accounts', href: '/app/accounts', icon: Building2 },
   { nameKey: 'nav.contacts', href: '/app/contacts', icon: Contact },
-  { nameKey: 'nav.opportunities', href: '/app/opportunities', icon: Target },
   { nameKey: 'nav.activities', href: '/app/activities', icon: CheckSquare },
   { nameKey: 'nav.services', href: '/app/services', icon: Wrench },
   { nameKey: 'nav.reports', href: '/app/reports', icon: BarChart3 },
